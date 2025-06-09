@@ -47,7 +47,7 @@ function SmartHeal:CreateUI()
     "Greater Heal(Rank 2)"
   }
 
-  UIDropDownMenu_Initialize(dropdown, function(self, level)
+  UIDropDownMenu_Initialize(dropdown, function()
     for _, spell in ipairs(spells) do
       local info = {}
       info.text = spell
