@@ -8,7 +8,6 @@ end
 function SmartHeal:SetSpell(spellName)
   if type(spellName) == "string" and spellName ~= "" and spellName ~= self.spell then
     self.spell = spellName
-    DEFAULT_CHAT_FRAME:AddMessage("|cff88ccff[SmartHeal]:|r Spell set to '" .. spellName .. "'")
   end
 end
 
@@ -40,8 +39,11 @@ function SmartHeal:HealLowest()
     end
   end
 
-  TargetUnit(lowest)
-  CastSpellByName(self.spell)
+  -- Only cast if target is missing more than 10% HP (i.e. below 90%)
+  if lowestHP < 0.90 then
+    TargetUnit(lowest)
+    CastSpellByName(self.spell)
+  end
 end
 
 SLASH_SMARTHEAL1 = "/smartheal"
