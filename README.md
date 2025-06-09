@@ -20,10 +20,11 @@
 2. Click the **AddOns** tab.
 3. Click **“Install from GitHub”**.
 4. Paste this repo URL:
+
    ```
    https://github.com/joker5914/SmartHeal
    ```
-5. Start the game and enable `SmartHeal` in the AddOns list.
+6. Start the game and enable `SmartHeal` in the AddOns list.
 
 ---
 
