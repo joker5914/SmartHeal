@@ -6,15 +6,15 @@
 
 ## ⚙️ Features
 
-- ✅ Auto-targets the lowest HP friendly (yourself, party, or raid)
-- 🔄 Supports any healing spell — configurable via chat
-- ❌ Skips dead or disconnected players
-- 🐢 100% TurtleWoW-compatible (1.12.1)
-- 💬 Slash command and macro-friendly
+- Auto-targets the lowest HP friendly (yourself, party, or raid)
+- Supports any healing spell — configurable via chat
+- Skips dead or disconnected players
+- 100% TurtleWoW-compatible (1.12.1)
+- Slash command and macro-friendly
 
 ---
 
-## 📦 Installation (via TurtleWoW Launcher)
+## Installation (via TurtleWoW Launcher)
 
 1. Open the **TurtleWoW Launcher**.
 2. Click the **AddOns** tab.
@@ -27,15 +27,15 @@
 
 ---
 
-## 🕹️ How to Use SmartHeal In-Game
+## How to Use SmartHeal In-Game
 
-### 🧠 What it does:
+### What it does:
 - Scans your raid or party (includes self)
 - Finds the **lowest-health friendly player**
 - Targets that player
 - Casts the healing spell you've chosen
 
-### 🔘 Set a Spell and Heal
+### Set a Spell and Heal
 
 Use this command in chat:
 ```
@@ -60,7 +60,7 @@ Once set, you can just use:
 ```
 To cast the last spell again on the lowest HP unit.
 
-### 🛠 Create a Macro
+### Create a Macro
 
 Add this to a macro for your action bar:
 
@@ -78,7 +78,7 @@ Add this to a macro for your action bar:
 
 ---
 
-## 💬 Slash Command Summary
+## Slash Command Summary
 
 | Command | Description |
 |---------|-------------|
