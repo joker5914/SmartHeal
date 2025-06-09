@@ -5,11 +5,18 @@ local function safe_trim(str)
   return string.gsub(str, "^%s*(.-)%s*$", "%1")
 end
 
--- UI Frame to select spell
+-- UI Frame to select spell (TurtleWoW-safe)
 function SmartHeal:CreateUI()
   if self.frame then return end
 
-  local f = CreateFrame("Frame", "SmartHealFrame", UIParent, "BasicFrameTemplate")
+  local f = CreateFrame("Frame", "SmartHealFrame", UIParent)
+  f:SetBackdrop({
+    bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+    edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+    tile = true, tileSize = 16, edgeSize = 16,
+    insets = { left = 4, right = 4, top = 4, bottom = 4 }
+  })
+  f:SetBackdropColor(0, 0, 0, 0.9)
   f:SetSize(220, 100)
   f:SetPoint("CENTER")
   f:SetMovable(true)
@@ -18,9 +25,9 @@ function SmartHeal:CreateUI()
   f:SetScript("OnDragStart", f.StartMoving)
   f:SetScript("OnDragStop", f.StopMovingOrSizing)
 
-  f.title = f:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-  f.title:SetPoint("TOP", 0, -10)
-  f.title:SetText("SmartHeal - Set Healing Spell")
+  local title = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+  title:SetPoint("TOP", 0, -10)
+  title:SetText("SmartHeal - Select Spell")
 
   local dropdown = CreateFrame("Frame", "SmartHealDropdown", f, "UIDropDownMenuTemplate")
   dropdown:SetPoint("TOP", f, "TOP", 0, -30)
@@ -41,8 +48,9 @@ function SmartHeal:CreateUI()
 
   UIDropDownMenu_Initialize(dropdown, function(self, level)
     for _, spell in ipairs(spells) do
-      local info = UIDropDownMenu_CreateInfo()
+      local info = {}
       info.text = spell
+      info.value = spell
       info.func = function()
         SmartHeal:SetSpell(spell)
         UIDropDownMenu_SetSelectedName(dropdown, spell)
