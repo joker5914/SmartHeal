@@ -1,102 +1,85 @@
 # SmartHeal 🔮
 
-**SmartHeal** is a lightweight healing addon for [TurtleWoW](https://turtle-wow.org/) that automatically targets the **lowest HP friendly player** in your party or raid and casts a healing spell of your choice.
+**SmartHeal** is a lightweight healing addon for [TurtleWoW](https://turtle-wow.org/) that automatically targets the **lowest HP friendly player** in your party or raid and casts a healing spell — with an optional **Renew** toggle.
 
 ---
 
 ## ⚙️ Features
 
-- Auto-targets the lowest HP friendly (yourself, party, or raid)
-- Supports any healing spell — configurable via chat
-- Skips dead or disconnected players
-- 100% TurtleWoW-compatible (1.12.1)
-- Slash command and macro-friendly
+- ✅ Auto-targets the lowest HP friendly unit (self, party, raid)
+- ✅ Skips dead or disconnected units
+- ✅ Optional **Renew(Rank 1)** toggle in the UI
+- ✅ Healing spell is hardcoded (default: `Flash Heal(Rank 2)`)
+- ✅ Simple, draggable in-game config window
+- ✅ Close button on UI window
+- ✅ 100% TurtleWoW-compatible (1.12.1)
 
 ---
 
-## Installation (via TurtleWoW Launcher)
+## 🧱 Installation (via TurtleWoW Launcher)
 
-1. Open the **TurtleWoW Launcher**.
-2. Click the **AddOns** tab.
-3. Click **“Install from GitHub”**.
+1. Open the **TurtleWoW Launcher**
+2. Go to the **AddOns** tab
+3. Click **“Install from GitHub”**
 4. Paste this repo URL:
 
    ```
    https://github.com/joker5914/SmartHeal
    ```
-6. Start the game and enable `SmartHeal` in the AddOns list.
+
+5. Start the game and enable `SmartHeal` in the AddOns list
 
 ---
 
-## How to Use SmartHeal In-Game
+## 🕹️ How to Use SmartHeal In-Game
 
-### What it does:
-- Scans your raid or party (includes self)
-- Finds the **lowest-health friendly player**
-- Targets that player
-- Casts the healing spell you've chosen
-
-### Set a Spell and Heal
-
-Use this command in chat:
-```
-/smartheal Spell Name(Rank X)
-```
-
-Example:
-```
-/smartheal Flash Heal(Rank 2)
-/smartheal Greater Heal(Rank 1)
-/smartheal Heal(Rank 4)
-```
-
-This will:
-- Set the healing spell
-- Target the lowest HP friendly unit
-- Cast that spell
-
-Once set, you can just use:
+### Basic Usage
+Cast the current spell (defaults to `Flash Heal(Rank 2)`) on the lowest-HP friendly player:
 ```
 /smartheal
 ```
-To cast the last spell again on the lowest HP unit.
 
-### Create a Macro
-
-Add this to a macro for your action bar:
-
-#### Macro Example – Set and Cast
+### Toggle Renew Option
+Open the in-game UI to toggle Renew logic:
 ```
-#showtooltip
-/smartheal Flash Heal(Rank 2)
+/smartheal ui
 ```
 
-#### Macro Example – Use last-used spell
+In the window:
+- ✅ Check "Use Renew(Rank 1) if not active" to apply Renew before your main heal
+- ❌ Uncheck to skip Renew entirely
+
+---
+
+## 🔁 Macro Example
+
 ```
 #showtooltip
 /smartheal
 ```
 
----
-
-## Slash Command Summary
-
-| Command | Description |
-|---------|-------------|
-| `/smartheal` | Casts current saved spell on lowest-HP target |
-| `/smartheal [Spell(Rank X)]` | Sets a new spell and casts it |
+Use this macro to cast heals on the lowest HP friendly without switching spells manually.
 
 ---
 
-## 🚧 Planned Features
+## 📜 Slash Command Summary
 
-- [ ] Don’t change current target after casting
-- [ ] Mouseover healing support
-- [ ] HP threshold to avoid wasting heals
-- [ ] Save chosen spell between sessions
+| Command         | Description                                         |
+|------------------|-----------------------------------------------------|
+| `/smartheal`     | Heals the lowest HP friendly with your chosen spell |
+| `/smartheal ui`  | Opens the settings window to toggle Renew           |
+
+---
+
+## 🚧 Known Limitations / Future Plans
+
+- [ ] Save Renew toggle between sessions
+- [ ] Change primary heal spell in UI
+- [ ] Allow fallback to player if no one is missing health
+- [ ] Add support for mouseover healing
 
 ---
 
 ## 🔒 License
 
-MIT — free to use, modify, or share. No credit needed.
+MIT — free to use, modify, or share. Credit optional but appreciated.
