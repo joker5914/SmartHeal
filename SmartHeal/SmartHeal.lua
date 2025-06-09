@@ -21,35 +21,39 @@ function SmartHeal:HasRenew(unit)
   return false
 end
 
-function SmartHeal:HealLowest()
-  local lowest = "player"
-  local lowestHP = UnitHealth("player") / UnitHealthMax("player")
+function SmartHeal:IsTank(name)
+  name = string.lower(name or "")
+  return string.find(name, "tank") or string.find(name, "war") or string.find(name, "mt") or string.find(name, "prot")
+end
 
-  if GetNumRaidMembers and GetNumRaidMembers() > 0 then
-    for i = 1, 40 do
-      local unit = "raid"..i
-      if UnitExists(unit) and UnitIsFriend("player", unit) and not UnitIsDead(unit) then
-        local hp = UnitHealth(unit) / UnitHealthMax(unit)
-        if hp < lowestHP then
-          lowestHP = hp
+function SmartHeal:HealLowest()
+  local units = {}
+  local lowest, lowestHP = "player", UnitHealth("player") / UnitHealthMax("player")
+
+  table.insert(units, "player")
+  for i = 1, 4 do table.insert(units, "party"..i) end
+  for i = 1, 40 do table.insert(units, "raid"..i) end
+
+  for _, unit in ipairs(units) do
+    if UnitExists(unit) and UnitIsFriend("player", unit) and not UnitIsDead(unit) then
+      local hp = UnitHealth(unit) / UnitHealthMax(unit)
+      if hp < lowestHP then
+        lowest = unit
+        lowestHP = hp
+      elseif math.abs(hp - lowestHP) < 0.01 then
+        local unitName = UnitName(unit)
+        local lowestName = UnitName(lowest)
+        if self:IsTank(unitName) and not self:IsTank(lowestName) then
           lowest = unit
-        end
-      end
-    end
-  else
-    for i = 1, 4 do
-      local unit = "party"..i
-      if UnitExists(unit) and UnitIsFriend("player", unit) and not UnitIsDead(unit) then
-        local hp = UnitHealth(unit) / UnitHealthMax(unit)
-        if hp < lowestHP then
-          lowestHP = hp
+        elseif unit == "player" and lowest ~= "player" then
           lowest = unit
         end
       end
     end
   end
 
-  if lowestHP < 0.90 then
+  -- Only cast if target is below 85% HP
+  if lowestHP < 0.85 then
     TargetUnit(lowest)
     if not self:HasRenew(lowest) then
       CastSpellByName("Renew(Rank 1)")
