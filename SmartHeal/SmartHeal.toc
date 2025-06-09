@@ -1,5 +1,5 @@
 ## Interface: 11200
-## Title: |cff88ccffSmartHeal|r
+## Title: |cffff4ffbSmartHeal|r
 ## Notes: Lightweight healing addon that heals the lowest HP players
 ## Version: 1.2
 SmartHeal.lua
