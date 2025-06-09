@@ -11,6 +11,16 @@ function SmartHeal:SetSpell(spellName)
   end
 end
 
+function SmartHeal:HasRenew(unit)
+  for i = 1, 16 do
+    local buff = UnitBuff(unit, i)
+    if buff and string.find(buff, "Renew") then
+      return true
+    end
+  end
+  return false
+end
+
 function SmartHeal:HealLowest()
   local lowest = "player"
   local lowestHP = UnitHealth("player") / UnitHealthMax("player")
@@ -39,10 +49,13 @@ function SmartHeal:HealLowest()
     end
   end
 
-  -- Only cast if target is missing more than 10% HP (i.e. below 90%)
   if lowestHP < 0.90 then
     TargetUnit(lowest)
-    CastSpellByName(self.spell)
+    if not self:HasRenew(lowest) then
+      CastSpellByName("Renew(Rank 1)")
+    else
+      CastSpellByName(self.spell)
+    end
   end
 end
 
