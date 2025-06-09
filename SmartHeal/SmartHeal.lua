@@ -6,7 +6,7 @@ local function safe_trim(str)
 end
 
 function SmartHeal:SetSpell(spellName)
-  if type(spellName) == "string" and spellName ~= "" then
+  if type(spellName) == "string" and spellName ~= "" and spellName ~= self.spell then
     self.spell = spellName
     DEFAULT_CHAT_FRAME:AddMessage("|cff88ccff[SmartHeal]:|r Spell set to '" .. spellName .. "'")
   end
