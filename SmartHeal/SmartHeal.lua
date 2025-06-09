@@ -1,6 +1,14 @@
-SLASH_SMARTHEAL1 = "/smartheal"
+SmartHeal = {}
+SmartHeal.spell = "Flash Heal(Rank 2)" -- default fallback
 
-function SmartHeal_Heal()
+function SmartHeal:SetSpell(spellName)
+  if type(spellName) == "string" and spellName ~= "" then
+    self.spell = spellName
+    DEFAULT_CHAT_FRAME:AddMessage("|cff88ccff[SmartHeal]:|r Spell set to '" .. spellName .. "'")
+  end
+end
+
+function SmartHeal:HealLowest()
   local lowest = "player"
   local lowestHP = UnitHealth("player") / UnitHealthMax("player")
 
@@ -29,7 +37,14 @@ function SmartHeal_Heal()
   end
 
   TargetUnit(lowest)
-  CastSpellByName("Flash Heal(Rank 2)")
+  CastSpellByName(self.spell)
 end
 
-SlashCmdList["SMARTHEAL"] = SmartHeal_Heal
+SLASH_SMARTHEAL1 = "/smartheal"
+SlashCmdList["SMARTHEAL"] = function(msg)
+  msg = msg:trim()
+  if msg ~= "" then
+    SmartHeal:SetSpell(msg)
+  end
+  SmartHeal:HealLowest()
+end
