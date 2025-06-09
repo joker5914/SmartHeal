@@ -1,5 +1,6 @@
 SmartHeal = {}
 SmartHeal.spell = "Flash Heal(Rank 2)" -- default fallback
+SmartHeal.useRenew = true
 
 local function safe_trim(str)
   return string.gsub(str, "^%s*(.-)%s*$", "%1")
@@ -17,7 +18,7 @@ function SmartHeal:CreateUI()
   })
   f:SetBackdropColor(0, 0, 0, 0.9)
   f:SetWidth(250)
-  f:SetHeight(120)
+  f:SetHeight(100)
   f:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
   f:SetMovable(true)
   f:EnableMouse(true)
@@ -27,7 +28,7 @@ function SmartHeal:CreateUI()
 
   local title = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
   title:SetPoint("TOP", 0, -10)
-  title:SetText("SmartHeal - Select Spell")
+  title:SetText("SmartHeal Settings")
 
   -- Close button
   local close = CreateFrame("Button", nil, f, "UIPanelCloseButton")
@@ -36,42 +37,20 @@ function SmartHeal:CreateUI()
   close:SetPoint("TOPRIGHT", f, "TOPRIGHT", -4, -4)
   close:SetScript("OnClick", function() f:Hide() end)
 
-  -- Dropdown
-  local dropdown = CreateFrame("Frame", "SmartHealDropdown", f, "UIDropDownMenuTemplate")
-  dropdown:SetPoint("TOP", f, "TOP", 0, -40)
-
-  f.dropdown = dropdown
-  UIDropDownMenu_Initialize(dropdown, function()
-    for _, spell in ipairs(SmartHeal.Spells) do
-      local info = {}
-      info.text = spell
-      info.value = spell
-      info.func = function()
-        SmartHeal:SetSpell(spell)
-        UIDropDownMenu_SetSelectedValue(dropdown, spell)
-      end
-      UIDropDownMenu_AddButton(info)
-    end
+  -- Checkbox for Renew toggle
+  local checkbox = CreateFrame("CheckButton", "SmartHealRenewToggle", f, "UICheckButtonTemplate")
+  checkbox:SetPoint("TOPLEFT", f, "TOPLEFT", 20, -35)
+  checkbox:SetChecked(SmartHeal.useRenew)
+  checkbox:SetScript("OnClick", function(self)
+    SmartHeal.useRenew = self:GetChecked()
   end)
-  UIDropDownMenu_SetWidth(dropdown, 160)
-  UIDropDownMenu_SetSelectedValue(dropdown, SmartHeal.spell)
+
+  local label = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+  label:SetPoint("LEFT", checkbox, "RIGHT", 5, 0)
+  label:SetText("Use Renew(Rank 1) if not active")
 
   self.frame = f
 end
-
-SmartHeal.Spells = {
-  "Lesser Heal(Rank 1)",
-  "Lesser Heal(Rank 2)",
-  "Lesser Heal(Rank 3)",
-  "Heal(Rank 1)",
-  "Heal(Rank 2)",
-  "Heal(Rank 3)",
-  "Flash Heal(Rank 1)",
-  "Flash Heal(Rank 2)",
-  "Flash Heal(Rank 3)",
-  "Greater Heal(Rank 1)",
-  "Greater Heal(Rank 2)"
-}
 
 function SmartHeal:SetSpell(spellName)
   if type(spellName) == "string" and spellName ~= "" and spellName ~= self.spell then
@@ -122,7 +101,7 @@ function SmartHeal:HealLowest()
 
   if lowestHP < 0.85 then
     TargetUnit(lowest)
-    if not self:HasRenew(lowest) then
+    if SmartHeal.useRenew and not self:HasRenew(lowest) then
       CastSpellByName("Renew(Rank 1)")
     else
       CastSpellByName(self.spell)
