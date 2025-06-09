@@ -1,5 +1,9 @@
 SmartHeal = {}
-SmartHeal.spell = "Flash Heal(Rank 2)" -- default fallback
+SmartHeal.spell = "Flash Heal(Rank 2)" -- default spell
+
+local function safe_trim(str)
+  return string.gsub(str, "^%s*(.-)%s*$", "%1")
+end
 
 function SmartHeal:SetSpell(spellName)
   if type(spellName) == "string" and spellName ~= "" then
@@ -18,8 +22,8 @@ function SmartHeal:HealLowest()
       if UnitExists(unit) and UnitIsFriend("player", unit) and not UnitIsDead(unit) then
         local hp = UnitHealth(unit) / UnitHealthMax(unit)
         if hp < lowestHP then
-          lowest = unit
           lowestHP = hp
+          lowest = unit
         end
       end
     end
@@ -29,8 +33,8 @@ function SmartHeal:HealLowest()
       if UnitExists(unit) and UnitIsFriend("player", unit) and not UnitIsDead(unit) then
         local hp = UnitHealth(unit) / UnitHealthMax(unit)
         if hp < lowestHP then
-          lowest = unit
           lowestHP = hp
+          lowest = unit
         end
       end
     end
@@ -42,7 +46,7 @@ end
 
 SLASH_SMARTHEAL1 = "/smartheal"
 SlashCmdList["SMARTHEAL"] = function(msg)
-  msg = msg:trim()
+  msg = safe_trim(msg or "")
   if msg ~= "" then
     SmartHeal:SetSpell(msg)
   end
