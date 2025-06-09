@@ -1,8 +1,60 @@
 SmartHeal = {}
-SmartHeal.spell = "Flash Heal(Rank 2)" -- default spell
+SmartHeal.spell = "Flash Heal(Rank 2)" -- default fallback
 
 local function safe_trim(str)
   return string.gsub(str, "^%s*(.-)%s*$", "%1")
+end
+
+-- UI Frame to select spell
+function SmartHeal:CreateUI()
+  if self.frame then return end
+
+  local f = CreateFrame("Frame", "SmartHealFrame", UIParent, "BasicFrameTemplate")
+  f:SetSize(220, 100)
+  f:SetPoint("CENTER")
+  f:SetMovable(true)
+  f:EnableMouse(true)
+  f:RegisterForDrag("LeftButton")
+  f:SetScript("OnDragStart", f.StartMoving)
+  f:SetScript("OnDragStop", f.StopMovingOrSizing)
+
+  f.title = f:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+  f.title:SetPoint("TOP", 0, -10)
+  f.title:SetText("SmartHeal - Set Healing Spell")
+
+  local dropdown = CreateFrame("Frame", "SmartHealDropdown", f, "UIDropDownMenuTemplate")
+  dropdown:SetPoint("TOP", f, "TOP", 0, -30)
+
+  local spells = {
+    "Lesser Heal(Rank 1)",
+    "Lesser Heal(Rank 2)",
+    "Lesser Heal(Rank 3)",
+    "Heal(Rank 1)",
+    "Heal(Rank 2)",
+    "Heal(Rank 3)",
+    "Flash Heal(Rank 1)",
+    "Flash Heal(Rank 2)",
+    "Flash Heal(Rank 3)",
+    "Greater Heal(Rank 1)",
+    "Greater Heal(Rank 2)"
+  }
+
+  UIDropDownMenu_Initialize(dropdown, function(self, level)
+    for _, spell in ipairs(spells) do
+      local info = UIDropDownMenu_CreateInfo()
+      info.text = spell
+      info.func = function()
+        SmartHeal:SetSpell(spell)
+        UIDropDownMenu_SetSelectedName(dropdown, spell)
+      end
+      UIDropDownMenu_AddButton(info)
+    end
+  end)
+
+  UIDropDownMenu_SetWidth(dropdown, 160)
+  UIDropDownMenu_SetSelectedName(dropdown, self.spell or "Flash Heal(Rank 2)")
+
+  self.frame = f
 end
 
 function SmartHeal:SetSpell(spellName)
@@ -52,7 +104,6 @@ function SmartHeal:HealLowest()
     end
   end
 
-  -- Only cast if target is below 85% HP
   if lowestHP < 0.85 then
     TargetUnit(lowest)
     if not self:HasRenew(lowest) then
@@ -66,7 +117,9 @@ end
 SLASH_SMARTHEAL1 = "/smartheal"
 SlashCmdList["SMARTHEAL"] = function(msg)
   msg = safe_trim(msg or "")
-  if msg ~= "" then
+  if msg == "ui" then
+    SmartHeal:CreateUI()
+  elseif msg ~= "" then
     SmartHeal:SetSpell(msg)
   end
   SmartHeal:HealLowest()
