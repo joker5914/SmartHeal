@@ -17,21 +17,29 @@ function SmartHeal:CreateUI()
     insets = { left = 4, right = 4, top = 4, bottom = 4 }
   })
   f:SetBackdropColor(0, 0, 0, 0.9)
-  f:SetWidth(220)
-  f:SetHeight(100)
+  f:SetWidth(250)
+  f:SetHeight(120)
   f:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
   f:SetMovable(true)
   f:EnableMouse(true)
   f:RegisterForDrag("LeftButton")
-  f:SetScript("OnDragStart", f.StartMoving)
-  f:SetScript("OnDragStop", f.StopMovingOrSizing)
+  f:SetScript("OnDragStart", function(self) self:StartMoving() end)
+  f:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
 
   local title = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
   title:SetPoint("TOP", 0, -10)
   title:SetText("SmartHeal - Select Spell")
 
+  -- Close button
+  local close = CreateFrame("Button", nil, f, "UIPanelCloseButton")
+  close:SetWidth(24)
+  close:SetHeight(24)
+  close:SetPoint("TOPRIGHT", f, "TOPRIGHT", -4, -4)
+  close:SetScript("OnClick", function() f:Hide() end)
+
+  -- Dropdown
   local dropdown = CreateFrame("Frame", "SmartHealDropdown", f, "UIDropDownMenuTemplate")
-  dropdown:SetPoint("TOP", f, "TOP", 0, -30)
+  dropdown:SetPoint("TOP", f, "TOP", 0, -40)
 
   local spells = {
     "Lesser Heal(Rank 1)",
