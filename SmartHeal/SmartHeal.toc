@@ -1,0 +1,5 @@
+## Interface: 11200
+## Title: SmartHeal
+## Notes: Heals the lowest HP friendly
+## Version: 1.0
+SmartHeal.lua
