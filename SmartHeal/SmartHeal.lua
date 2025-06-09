@@ -7,7 +7,10 @@ local function safe_trim(str)
 end
 
 function SmartHeal:CreateUI()
-  if self.frame then return end
+  if self.frame then
+    self.frame:Show()
+    return
+  end
 
   local f = CreateFrame("Frame", "SmartHealFrame", UIParent)
   f:SetBackdrop({
