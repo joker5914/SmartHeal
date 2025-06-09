@@ -5,7 +5,6 @@ local function safe_trim(str)
   return string.gsub(str, "^%s*(.-)%s*$", "%1")
 end
 
--- UI Frame to select spell (TurtleWoW-safe)
 function SmartHeal:CreateUI()
   if self.frame then return end
 
@@ -23,8 +22,8 @@ function SmartHeal:CreateUI()
   f:SetMovable(true)
   f:EnableMouse(true)
   f:RegisterForDrag("LeftButton")
-  f:SetScript("OnDragStart", function(self) self:StartMoving() end)
-  f:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
+  f:SetScript("OnDragStart", function() f:StartMoving() end)
+  f:SetScript("OnDragStop", function() f:StopMovingOrSizing() end)
 
   local title = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
   title:SetPoint("TOP", 0, -10)
@@ -41,38 +40,38 @@ function SmartHeal:CreateUI()
   local dropdown = CreateFrame("Frame", "SmartHealDropdown", f, "UIDropDownMenuTemplate")
   dropdown:SetPoint("TOP", f, "TOP", 0, -40)
 
-  local spells = {
-    "Lesser Heal(Rank 1)",
-    "Lesser Heal(Rank 2)",
-    "Lesser Heal(Rank 3)",
-    "Heal(Rank 1)",
-    "Heal(Rank 2)",
-    "Heal(Rank 3)",
-    "Flash Heal(Rank 1)",
-    "Flash Heal(Rank 2)",
-    "Flash Heal(Rank 3)",
-    "Greater Heal(Rank 1)",
-    "Greater Heal(Rank 2)"
-  }
-
+  f.dropdown = dropdown
   UIDropDownMenu_Initialize(dropdown, function()
-    for _, spell in ipairs(spells) do
+    for _, spell in ipairs(SmartHeal.Spells) do
       local info = {}
       info.text = spell
       info.value = spell
       info.func = function()
         SmartHeal:SetSpell(spell)
-        UIDropDownMenu_SetSelectedName(dropdown, spell)
+        UIDropDownMenu_SetSelectedValue(dropdown, spell)
       end
       UIDropDownMenu_AddButton(info)
     end
   end)
-
   UIDropDownMenu_SetWidth(dropdown, 160)
-  UIDropDownMenu_SetSelectedName(dropdown, self.spell or "Flash Heal(Rank 2)")
+  UIDropDownMenu_SetSelectedValue(dropdown, SmartHeal.spell)
 
   self.frame = f
 end
+
+SmartHeal.Spells = {
+  "Lesser Heal(Rank 1)",
+  "Lesser Heal(Rank 2)",
+  "Lesser Heal(Rank 3)",
+  "Heal(Rank 1)",
+  "Heal(Rank 2)",
+  "Heal(Rank 3)",
+  "Flash Heal(Rank 1)",
+  "Flash Heal(Rank 2)",
+  "Flash Heal(Rank 3)",
+  "Greater Heal(Rank 1)",
+  "Greater Heal(Rank 2)"
+}
 
 function SmartHeal:SetSpell(spellName)
   if type(spellName) == "string" and spellName ~= "" and spellName ~= self.spell then
