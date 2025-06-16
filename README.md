@@ -1,22 +1,22 @@
-# SmartHeal 🔮
+# SmartHeal 
 
 **SmartHeal** is a lightweight healing addon for [TurtleWoW](https://turtle-wow.org/) that automatically targets the **lowest HP friendly player** in your party or raid and casts a healing spell — with an optional **Renew** toggle.
 
 ---
 
-## ⚙️ Features
+##  Features
 
-- ✅ Auto-targets the lowest HP friendly unit (self, party, raid)
-- ✅ Skips dead or disconnected units
-- ✅ Optional **Renew(Rank 1)** toggle in the UI
-- ✅ Healing spell is hardcoded (default: `Flash Heal(Rank 2)`)
-- ✅ Simple, draggable in-game config window
-- ✅ Close button on UI window
-- ✅ 100% TurtleWoW-compatible (1.12.1)
+-  Auto-targets the lowest HP friendly unit (self, party, raid)
+-  Skips dead or disconnected units
+-  Optional **Renew(Rank 1)** toggle in the UI
+-  Healing spell is hardcoded (default: `Flash Heal(Rank 2)`)
+-  Simple, draggable in-game config window
+-  Close button on UI window
+-  100% TurtleWoW-compatible (1.12.1)
 
 ---
 
-## 🧱 Installation (via TurtleWoW Launcher)
+##  Installation (via TurtleWoW Launcher)
 
 1. Open the **TurtleWoW Launcher**
 2. Go to the **AddOns** tab
@@ -31,7 +31,7 @@
 
 ---
 
-## 🕹️ How to Use SmartHeal In-Game
+## 🕹 How to Use SmartHeal In-Game
 
 ### Basic Usage
 Cast the current spell (defaults to `Flash Heal(Rank 2)`) on the lowest-HP friendly player:
@@ -51,7 +51,7 @@ In the window:
 
 ---
 
-## 🔁 Macro Example
+##  Macro Example
 
 ```
 #showtooltip
@@ -62,7 +62,7 @@ Use this macro to cast heals on the lowest HP friendly without switching spells 
 
 ---
 
-## 📜 Slash Command Summary
+##  Slash Command Summary
 
 | Command         | Description                                         |
 |------------------|-----------------------------------------------------|
