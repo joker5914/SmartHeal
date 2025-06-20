@@ -41,7 +41,7 @@ local DEFAULT_CHAT_FRAME = DEFAULT_CHAT_FRAME
 
 -- Trim whitespace
 local function trim(s)
-  return s and s:gsub("^%s*(.-)%s*$","%1") or ""
+  return s and string.gsub(s("^%s*(.-)%s*$","%1") or ""
 end
 
 -- Normalize spell names to Blizzard's format
