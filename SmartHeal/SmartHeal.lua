@@ -4,7 +4,6 @@ Features:
  • Persistent settings via SavedVariables
  • Auto-heal lowest friendly unit with optional Renew(Rank1)
  • User-adjustable HP threshold & Renew cooldown
- • SecureActionButton integration for combat-safe casting
  • Mana & range checks, error feedback
  • Tank priority & self-tiebreaker
 ]]
@@ -21,9 +20,9 @@ SmartHealDB = SmartHealDB or {
 }
 
 -- Localize globals for performance
-local _G = _G
 local ipairs = ipairs
 local math_floor = math.floor
+local math_abs   = math.abs
 local GetTime = GetTime
 local UnitBuff = UnitBuff
 local UnitHealth = UnitHealth
@@ -41,22 +40,24 @@ local DEFAULT_CHAT_FRAME = DEFAULT_CHAT_FRAME
 
 -- Trim whitespace
 local function trim(s)
-  return s and string.gsub(s("^%s*(.-)%s*$","%1") or ""
+  return (s and string.gsub(s, "^%s*(.-)%s*%$", "%1") or "")
 end
 
 -- Normalize spell names to Blizzard's format
 local function normalizeSpellName(name)
   name = trim(name)
-  name = name:gsub("%s*%(", " (")
-  name = name:gsub("Rank%s*(%d+)", "Rank %1")
+  -- ensure parentheses have space
+  name = string.gsub(name, "%s*%(", " (")
+  -- ensure "Rank X"
+  name = string.gsub(name, "Rank%s*(%d+)", "Rank %1")
   return name
 end
 
--- Check Renew buff by matching localized buff name
+-- Check Renew buff by matching buff name
 function SmartHeal:HasRenew(unit)
   for i = 1, 16 do
     local buffName = UnitBuff(unit, i)
-    if buffName and buffName:find("^Renew") then
+    if buffName and string.find(buffName, "^Renew") then
       return true
     end
   end
@@ -69,22 +70,21 @@ function SmartHeal:IsTank(name)
   return name:find("tank") or name:find("war") or name:find("prot") or name:find("mt")
 end
 
--- Core healing logic safe for combat
+-- Core healing logic
 function SmartHeal:HealLowest()
-  -- Build unit list based on group size
-  local units = {"player"}
+  local units = { "player" }
   local maxGroup = IsInRaid() and GetNumGroupMembers() or 4
-  for i = 1, maxGroup do table.insert(units, IsInRaid() and "raid"..i or "party"..i) end
+  for i = 1, maxGroup do
+    table.insert(units, IsInRaid() and "raid"..i or "party"..i)
+  end
 
-  -- Find lowest HP unit
   local lowest, lowestFrac = nil, 1
   for _, u in ipairs(units) do
-    if UnitExists(u) and UnitIsFriend("player",u) and not UnitIsDead(u) then
+    if UnitExists(u) and UnitIsFriend("player", u) and not UnitIsDead(u) then
       local frac = UnitHealth(u) / (UnitHealthMax(u) or 1)
       if frac < lowestFrac then
         lowest, lowestFrac = u, frac
-      elseif lowest and math.abs(frac - lowestFrac) < 1e-2 then
-        -- Tie-break: tanks first, then self
+      elseif lowest and math_abs(frac - lowestFrac) < 0.01 then
         local nm, lnm = UnitName(u), UnitName(lowest)
         if self:IsTank(nm) and not self:IsTank(lnm) then
           lowest, lowestFrac = u, frac
@@ -95,13 +95,11 @@ function SmartHeal:HealLowest()
     end
   end
 
-  -- Only heal if below threshold
   if lowest and lowestFrac < SmartHealDB.threshold then
     local hadTarget = UnitExists("target")
-    local old = hadTarget and UnitName("target")
+    local oldTarget = hadTarget and UnitName("target")
     TargetUnit(lowest)
 
-    -- Decide which spell
     local now = GetTime()
     local castSpell = SmartHealDB.spell
     if SmartHealDB.useRenew and not self:HasRenew(lowest) then
@@ -114,7 +112,6 @@ function SmartHeal:HealLowest()
     end
 
     castSpell = normalizeSpellName(castSpell)
-    -- Check usability
     local usable, nomana = IsUsableSpell(castSpell)
     if not usable then
       if nomana then
@@ -122,13 +119,12 @@ function SmartHeal:HealLowest()
       else
         DEFAULT_CHAT_FRAME:AddMessage("SmartHeal: spell not known - "..castSpell)
       end
-    elseif not CheckInteractDistance(lowest,3) then
+    elseif not CheckInteractDistance(lowest, 3) then
       DEFAULT_CHAT_FRAME:AddMessage("SmartHeal: "..UnitName(lowest).." out of range")
     else
       CastSpellByName(castSpell)
     end
 
-    -- Restore original target
     if hadTarget then
       TargetLastTarget()
     end
@@ -138,69 +134,64 @@ end
 -- Settings UI
 function SmartHeal:CreateUI()
   if self.frame then self.frame:Show() return end
-  local f = CreateFrame("Frame","SmartHealFrame",UIParent)
-  f:SetSize(300,140)
+  local f = CreateFrame("Frame", "SmartHealFrame", UIParent)
+  f:SetSize(300, 140)
   f:SetPoint("CENTER")
   f:SetBackdrop({
-    bgFile="Interface/Tooltips/UI-Tooltip-Background",
-    edgeFile="Interface/Tooltips/UI-Tooltip-Border",
-    tile=true, tileSize=16, edgeSize=16,
-    insets={left=4,right=4,top=4,bottom=4}
+    bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+    edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+    tile = true, tileSize = 16, edgeSize = 16,
+    insets = { left = 4, right = 4, top = 4, bottom = 4 },
   })
-  f:SetBackdropColor(0,0,0,0.8)
+  f:SetBackdropColor(0, 0, 0, 0.8)
   f:EnableMouse(true)
   f:SetMovable(true)
   f:RegisterForDrag("LeftButton")
-  f:SetScript("OnDragStart",f.StartMoving)
-  f:SetScript("OnDragStop",function(self) self:StopMovingOrSizing() end)
+  f:SetScript("OnDragStart", f.StartMoving)
+  f:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
 
-  -- Title
-  local t = f:CreateFontString(nil,"OVERLAY","GameFontNormalLarge")
-  t:SetPoint("TOP",0,-8)
-  t:SetText("SmartHeal Settings")
+  local title = f:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+  title:SetPoint("TOP", 0, -8)
+  title:SetText("SmartHeal Settings")
 
-  -- Spell edit box
-  local eb = CreateFrame("EditBox",nil,f,"InputBoxTemplate")
-  eb:SetSize(180,20)
-  eb:SetPoint("TOP",0,-32)
+  local eb = CreateFrame("EditBox", nil, f, "InputBoxTemplate")
+  eb:SetSize(180, 20)
+  eb:SetPoint("TOP", 0, -32)
   eb:SetText(SmartHealDB.spell)
   eb:SetAutoFocus(false)
-  eb:SetScript("OnEnterPressed",function(self)
+  eb:SetScript("OnEnterPressed", function(self)
     local txt = normalizeSpellName(self:GetText())
     SmartHealDB.spell = txt
     DEFAULT_CHAT_FRAME:AddMessage("SmartHeal: Spell set to '"..txt.."'")
     self:ClearFocus()
   end)
 
-  -- Renew checkbox
-  local cb = CreateFrame("CheckButton","SmartHealRenewCB",f,"UICheckButtonTemplate")
-  cb:SetPoint("TOPLEFT",16,-64)
+  local cb = CreateFrame("CheckButton", "SmartHealRenewCB", f, "UICheckButtonTemplate")
+  cb:SetPoint("TOPLEFT", 16, -64)
   cb:SetChecked(SmartHealDB.useRenew)
-  cb:SetScript("OnClick",function(self)
+  cb:SetScript("OnClick", function(self)
     SmartHealDB.useRenew = self:GetChecked()
   end)
-  local lb = f:CreateFontString(nil,"OVERLAY","GameFontNormal")
-  lb:SetPoint("LEFT",cb,"RIGHT",4,0)
+  local lb = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+  lb:SetPoint("LEFT", cb, "RIGHT", 4, 0)
   lb:SetText("Use Renew")
 
-  -- Threshold slider
-  local sl = CreateFrame("Slider",nil,f,"OptionsSliderTemplate")
-  sl:SetPoint("TOP",0,-96)
-  sl:SetMinMaxValues(0.1,1)
+  local sl = CreateFrame("Slider", nil, f, "OptionsSliderTemplate")
+  sl:SetPoint("TOP", 0, -96)
+  sl:SetMinMaxValues(0.1, 1)
   sl:SetValueStep(0.05)
   sl:SetValue(SmartHealDB.threshold)
   sl:SetObeyStepOnDrag(true)
-  sl:SetScript("OnValueChanged",function(self,val)
+  sl:SetScript("OnValueChanged", function(self, val)
     SmartHealDB.threshold = val
-    self.text:SetText(string.format("Threshold: %.0f%%",val*100))
+    self.text:SetText(string.format("Threshold: %.0f%%", val*100))
   end)
   sl.text = _G[sl:GetName().."Text"]
-  sl.text:SetText(string.format("Threshold: %.0f%%",SmartHealDB.threshold*100))
+  sl.text:SetText(string.format("Threshold: %.0f%%", SmartHealDB.threshold*100))
 
-  -- Close button
-  local close = CreateFrame("Button",nil,f,"UIPanelCloseButton")
-  close:SetPoint("TOPRIGHT",-4,-4)
-  close:SetScript("OnClick",function() f:Hide() end)
+  local close = CreateFrame("Button", nil, f, "UIPanelCloseButton")
+  close:SetPoint("TOPRIGHT", -4, -4)
+  close:SetScript("OnClick", function() f:Hide() end)
 
   self.frame = f
 end
@@ -208,11 +199,11 @@ end
 -- Slash command
 SLASH_SMARTHEAL1 = "/smartheal"
 SlashCmdList["SMARTHEAL"] = function(msg)
-  msg = trim(msg or "")
-  if msg == "ui" then
+  local cmd = trim(msg or "")
+  if cmd == "ui" then
     SmartHeal:CreateUI()
   else
-    local nm = normalizeSpellName(msg)
+    local nm = normalizeSpellName(cmd)
     SmartHealDB.spell = nm
     DEFAULT_CHAT_FRAME:AddMessage("SmartHeal: Spell set to '"..nm.."'")
     SmartHeal:HealLowest()
