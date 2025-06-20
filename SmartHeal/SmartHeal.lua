@@ -41,7 +41,8 @@ function SmartHeal:CreateUI()
     insets   = { left = 4, right = 4, top = 4, bottom = 4 },
   }
   f:SetBackdropColor(0,0,0,0.9)
-  f:SetSize(260, 140)
+  f:SetWidth(260)
+  f:SetHeight(140)
   f:SetPoint("CENTER")
   f:EnableMouse(true)
   f:SetMovable(true)
@@ -56,13 +57,13 @@ function SmartHeal:CreateUI()
 
   -- Close button
   local close = CreateFrame("Button", nil, f, "UIPanelCloseButton")
-  close:SetSize(24,24)
-  close:SetPoint("TOPRIGHT", -4, -4)
+  close:SetWidth(24); close:SetHeight(24)
+  close:SetPoint("TOPRIGHT",-4,-4)
   close:SetScript("OnClick", function() f:Hide() end)
 
   -- Renew toggle
   local cb = CreateFrame("CheckButton", "SmartHealRenewToggle", f, "UICheckButtonTemplate")
-  cb:SetPoint("TOPLEFT", 10, - thirty ) -- fudge offset if needed
+  cb:SetPoint("TOPLEFT", 10, -40)
   cb:SetChecked(self.useRenew)
   cb:SetScript("OnClick", function(btn)
     SmartHeal.useRenew = btn:GetChecked()
@@ -73,7 +74,7 @@ function SmartHeal:CreateUI()
 
   -- HP threshold slider
   local slider = CreateFrame("Slider", "SmartHealThresholdSlider", f, "OptionsSliderTemplate")
-  slider:SetPoint("TOPLEFT", 10, - sixty ) -- adjust vertical spacing
+  slider:SetPoint("TOPLEFT", 10, -70)
   slider:SetMinMaxValues(0,1)
   slider:SetValueStep(0.05)
   slider:SetObeyStepOnDrag(true)
@@ -81,14 +82,14 @@ function SmartHeal:CreateUI()
   slider:SetScript("OnValueChanged", function(_, val)
     SmartHeal.threshold = val
   end)
-  _G[slider:GetName() .. "Low"]:SetText("0%")
-  _G[slider:GetName() .. "High"]:SetText("100%")
-  _G[slider:GetName() .. "Text"]:SetText("Heal Below")
+  _G[slider:GetName().."Low"]:SetText("0%")
+  _G[slider:GetName().."High"]:SetText("100%")
+  _G[slider:GetName().."Text"]:SetText("Heal Below")
 
   -- Spell input box
   local eb = CreateFrame("EditBox", "SmartHealSpellInput", f, "InputBoxTemplate")
-  eb:SetSize(180, 20)
-  eb:SetPoint("TOPLEFT", 120, - forty )
+  eb:SetWidth(180); eb:SetHeight(20)
+  eb:SetPoint("TOPLEFT", 120, -40)
   eb:SetText(self.spell)
   eb:SetAutoFocus(false)
   eb:SetScript("OnEnterPressed", function(box)
@@ -120,8 +121,8 @@ end
 function SmartHeal:HealLowest()
   -- gather units: player + dynamic party/raid
   local units = { "player" }
-  local raidCount  = GetNumRaidMembers  and GetNumRaidMembers()  or 0
-  local partyCount = GetNumPartyMembers and GetNumPartyMembers() or 0
+  local raidCount  = (GetNumRaidMembers  and GetNumRaidMembers() ) or 0
+  local partyCount = (GetNumPartyMembers and GetNumPartyMembers()) or 0
 
   if raidCount > 0 then
     for i = 1, raidCount do table.insert(units, "raid"..i) end
@@ -146,8 +147,9 @@ function SmartHeal:HealLowest()
     TargetUnit(lowest)
 
     local now = GetTime()
-    if self.useRenew and not self:HasRenew(lowest)
-       and (not lastRenew[lowest] or now - lastRenew[lowest] >= SmartHealDB.renewCooldown)
+    if self.useRenew
+       and not self:HasRenew(lowest)
+       and (not lastRenew[lowest] or now - lastRenew[lowest] >= SmartHeal.renewCooldown)
     then
       if IsUsableSpell("Renew") then
         CastSpellByName("Renew(Rank 1)")
@@ -183,7 +185,7 @@ SlashCmdList["SMARTHEAL"] = function(msg)
   SmartHealDB.spell         = SmartHeal.spell
   SmartHealDB.useRenew      = SmartHeal.useRenew
   SmartHealDB.threshold     = SmartHeal.threshold
-  SmartHealDB.renewCooldown = SmartHealDB.renewCooldown
+  SmartHealDB.renewCooldown = SmartHeal.renewCooldown
 
   SmartHeal:HealLowest()
 end
