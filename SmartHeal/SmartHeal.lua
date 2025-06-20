@@ -135,14 +135,7 @@ function SmartHeal:HealLowest()
   end
 end
 
--- Secure button for combat-safe casts
-local button = CreateFrame("Button", "SmartHealSecure", UIParent, "SecureActionButtonTemplate")
-button:SetAttribute("type", "macro")
-button:SetAttribute("macrotext", "/run SmartHeal:HealLowest()")
-
--- Settings UI
-function SmartHeal:CreateUI()
-  if self.frame then self.frame:Show() return end
+-- Combat-safe casting via slash-macro; secure button unavailable on TurtleWoW 1.12.1
   local f = CreateFrame("Frame","SmartHealFrame",UIParent)
   f:SetSize(300,140)
   f:SetPoint("CENTER")
