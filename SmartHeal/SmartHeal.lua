@@ -135,13 +135,18 @@ function SmartHeal:HealLowest()
   end
 end
 
--- Combat-safe casting via slash-macro; secure button unavailable on TurtleWoW 1.12.1
+-- Settings UI
+function SmartHeal:CreateUI()
+  if self.frame then self.frame:Show() return end
   local f = CreateFrame("Frame","SmartHealFrame",UIParent)
   f:SetSize(300,140)
   f:SetPoint("CENTER")
-  f:SetBackdrop({bgFile="Interface/Tooltips/UI-Tooltip-Background",
-    edgeFile="Interface/Tooltips/UI-Tooltip-Border",tile=true,tileSize=16,edgeSize=16,
-    insets={left=4,right=4,top=4,bottom=4}})
+  f:SetBackdrop({
+    bgFile="Interface/Tooltips/UI-Tooltip-Background",
+    edgeFile="Interface/Tooltips/UI-Tooltip-Border",
+    tile=true, tileSize=16, edgeSize=16,
+    insets={left=4,right=4,top=4,bottom=4}
+  })
   f:SetBackdropColor(0,0,0,0.8)
   f:EnableMouse(true)
   f:SetMovable(true)
@@ -149,6 +154,7 @@ end
   f:SetScript("OnDragStart",f.StartMoving)
   f:SetScript("OnDragStop",function(self) self:StopMovingOrSizing() end)
 
+  -- Title
   local t = f:CreateFontString(nil,"OVERLAY","GameFontNormalLarge")
   t:SetPoint("TOP",0,-8)
   t:SetText("SmartHeal Settings")
@@ -186,11 +192,12 @@ end
   sl:SetObeyStepOnDrag(true)
   sl:SetScript("OnValueChanged",function(self,val)
     SmartHealDB.threshold = val
-    self.text:SetText(string.format("Threshold: %.0f%%",val*100)) end)
+    self.text:SetText(string.format("Threshold: %.0f%%",val*100))
+  end)
   sl.text = _G[sl:GetName().."Text"]
   sl.text:SetText(string.format("Threshold: %.0f%%",SmartHealDB.threshold*100))
 
-  -- Close
+  -- Close button
   local close = CreateFrame("Button",nil,f,"UIPanelCloseButton")
   close:SetPoint("TOPRIGHT",-4,-4)
   close:SetScript("OnClick",function() f:Hide() end)
