@@ -20,13 +20,16 @@ local function trim(s) return string.gsub(s, "^%s*(.-)%s*$", "%1") end
 ----------------------------------------
 -- UI Creation
 ----------------------------------------
+----------------------------------------
+-- UI Creation (reverted + improved layout)
+----------------------------------------
 function SmartHeal:CreateUI()
   if self.frame then
     self.frame:Show()
     return
   end
 
-  -- create main frame
+  -- Main window
   local f = CreateFrame("Frame", "SmartHealFrame", UIParent)
   f:SetBackdrop{
     bgFile   = "Interface/Tooltips/UI-Tooltip-Background",
@@ -36,7 +39,7 @@ function SmartHeal:CreateUI()
   }
   f:SetBackdropColor(0,0,0,0.9)
   f:SetWidth(300)
-  f:SetHeight(180)
+  f:SetHeight(160)
   f:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
   f:EnableMouse(true)
   f:SetMovable(true)
@@ -44,18 +47,18 @@ function SmartHeal:CreateUI()
   f:SetScript("OnDragStart", function() f:StartMoving() end)
   f:SetScript("OnDragStop",  function() f:StopMovingOrSizing() end)
 
-  -- title
+  -- Title
   local title = f:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
   title:SetPoint("TOP", f, "TOP", 0, -8)
   title:SetText("SmartHeal Settings")
 
-  -- close button
+  -- Close button
   local close = CreateFrame("Button", nil, f, "UIPanelCloseButton")
   close:SetSize(24,24)
   close:SetPoint("TOPRIGHT", f, "TOPRIGHT", -4, -4)
   close:SetScript("OnClick", function() f:Hide() end)
 
-  -- row 1: Renew toggle
+  -- Row 1: Renew checkbox
   local cb = CreateFrame("CheckButton", "SmartHealRenewToggle", f, "UICheckButtonTemplate")
   cb:SetPoint("TOPLEFT", f, "TOPLEFT", 16, -32)
   cb:SetChecked(self.useRenew)
@@ -66,7 +69,7 @@ function SmartHeal:CreateUI()
   cbLabel:SetPoint("LEFT", cb, "RIGHT", 4, 0)
   cbLabel:SetText("Use Renew (Rank 1)")
 
-  -- row 2: Spell input
+  -- Row 2: Spell input label + editbox
   local spellLabel = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
   spellLabel:SetPoint("TOPLEFT", cb, "BOTTOMLEFT", 0, -16)
   spellLabel:SetText("Heal Spell:")
@@ -82,12 +85,12 @@ function SmartHeal:CreateUI()
   end)
   eb:SetScript("OnEscapePressed", function(box) box:ClearFocus() end)
 
-  -- row 3: Slider label
+  -- Row 3: Slider label
   local sliderLabel = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
   sliderLabel:SetPoint("TOPLEFT", spellLabel, "BOTTOMLEFT", 0, -24)
   sliderLabel:SetText("Heal Below (HP %):")
 
-  -- row 4: Slider
+  -- Row 4: Slider
   local slider = CreateFrame("Slider", "SmartHealThresholdSlider", f, "OptionsSliderTemplate")
   slider:SetPoint("LEFT", sliderLabel, "RIGHT", 8, -2)
   slider:SetMinMaxValues(0,1)
@@ -96,8 +99,10 @@ function SmartHeal:CreateUI()
   slider:SetScript("OnValueChanged", function(_, val)
     SmartHeal.threshold = val
   end)
+  -- use getglobal for classic
   getglobal(slider:GetName().."Low"):SetText("0%")
   getglobal(slider:GetName().."High"):SetText("100%")
+  getglobal(slider:GetName().."Text"):SetText("Percent")
 
   self.frame = f
 end
