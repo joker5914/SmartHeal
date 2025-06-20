@@ -9,6 +9,9 @@ Features:
  • Tank priority & self-tiebreaker
 ]]
 
+-- Initialize core table
+SmartHeal = SmartHeal or {}
+
 -- SavedVariables defaults
 SmartHealDB = SmartHealDB or {
   spell = "Flash Heal(Rank 2)",
