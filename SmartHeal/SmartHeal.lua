@@ -20,9 +20,7 @@ local function trim(s) return string.gsub(s, "^%s*(.-)%s*$", "%1") end
 ----------------------------------------
 -- UI Creation
 ----------------------------------------
-----------------------------------------
--- UI Creation
-----------------------------------------
+
 function SmartHeal:CreateUI()
   if self.frame then
     self.frame:Show()
@@ -37,51 +35,47 @@ function SmartHeal:CreateUI()
     insets   = {4,4,4,4},
   }
   f:SetBackdropColor(0,0,0,0.9)
-  f:SetWidth(300); f:SetHeight(190)
+
+  -- replace any SetSize with SetWidth/SetHeight
+  f:SetWidth(300)
+  f:SetHeight(190)
+
   f:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
-  f:EnableMouse(true); f:SetMovable(true); f:RegisterForDrag("LeftButton")
+  f:EnableMouse(true)
+  f:SetMovable(true)
+  f:RegisterForDrag("LeftButton")
   f:SetScript("OnDragStart", function() f:StartMoving() end)
   f:SetScript("OnDragStop",  function() f:StopMovingOrSizing() end)
 
-  -- Main Title
+  -- Title
   local title = f:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
   title:SetPoint("TOP", f, "TOP", 0, -8)
   title:SetText("SmartHeal Settings")
 
-  -- Close Button
+  -- Close button
   local close = CreateFrame("Button", nil, f, "UIPanelCloseButton")
-  close:SetSize(24,24)
+  close:SetWidth(24); close:SetHeight(24)
   close:SetPoint("TOPRIGHT", f, "TOPRIGHT", -4, -4)
   close:SetScript("OnClick", function() f:Hide() end)
 
-  -- Renew toggle
+  -- Renew checkbox
   local cb = CreateFrame("CheckButton", "SmartHealRenewToggle", f, "UICheckButtonTemplate")
   cb:SetPoint("TOPLEFT", f, "TOPLEFT", 70, -40)
   cb:SetChecked(self.useRenew)
   cb:SetScript("OnClick", function(btn) SmartHeal.useRenew = btn:GetChecked() end)
-  local lbl = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-  lbl:SetPoint("LEFT", cb, "RIGHT", 4, 0)
-  lbl:SetText("Use Renew (Rank 1)")
+  local cbLabel = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+  cbLabel:SetPoint("LEFT", cb, "RIGHT", 4, 0)
+  cbLabel:SetText("Use Renew (Rank 1)")
 
-  -- HP threshold slider
-  local slider = CreateFrame("Slider", "SmartHealThresholdSlider", f, "OptionsSliderTemplate")
-  slider:SetPoint("TOPLEFT", f, "TOPLEFT", 90, -100)
-  slider:SetMinMaxValues(0,1); slider:SetValueStep(0.05)
-  slider:SetValue(self.threshold)
-  slider:SetScript("OnValueChanged", function(_, val) SmartHeal.threshold = val end)
-  getglobal(slider:GetName().."Low"):SetText("0%")
-  getglobal(slider:GetName().."High"):SetText("100%")
-  getglobal(slider:GetName().."Text"):SetText("Heal Below HP %")
-
-  -- **Heal Spell label** (NEW)
+  -- Heal Spell label
   local spellLabel = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-  spellLabel:SetPoint("TOPLEFT", f, "TOPLEFT", 70, -130)
+  spellLabel:SetPoint("TOPLEFT", f, "TOPLEFT", 70, -80)
   spellLabel:SetText("Heal Spell:")
 
-  -- Spell input box
+  -- Spell input
   local eb = CreateFrame("EditBox", "SmartHealSpellInput", f, "InputBoxTemplate")
   eb:SetWidth(180); eb:SetHeight(20)
-  eb:SetPoint("TOPLEFT", f, "TOPLEFT", 70, -150)
+  eb:SetPoint("TOPLEFT", f, "TOPLEFT", 70, -100)
   eb:SetText(self.spell); eb:SetAutoFocus(false)
   eb:SetScript("OnEnterPressed", function(box)
     local txt = trim(box:GetText())
@@ -89,6 +83,24 @@ function SmartHeal:CreateUI()
     box:ClearFocus()
   end)
   eb:SetScript("OnEscapePressed", function(box) box:ClearFocus() end)
+
+  -- Slider label
+  local sliderLabel = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+  sliderLabel:SetPoint("TOPLEFT", eb, "BOTTOMLEFT", 0, -16)
+  sliderLabel:SetText("Heal Below HP %:")
+
+  -- Slider
+  local slider = CreateFrame("Slider", "SmartHealThresholdSlider", f, "OptionsSliderTemplate")
+  slider:SetPoint("LEFT", sliderLabel, "RIGHT", 8, -2)
+  slider:SetMinMaxValues(0,1)
+  slider:SetValueStep(0.05)
+  slider:SetValue(self.threshold)
+  slider:SetScript("OnValueChanged", function(_, val)
+    SmartHeal.threshold = val
+  end)
+  getglobal(slider:GetName().."Low"):SetText("0%")
+  getglobal(slider:GetName().."High"):SetText("100%")
+  getglobal(slider:GetName().."Text"):SetText("Threshold")
 
   self.frame = f
 end
