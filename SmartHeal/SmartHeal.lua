@@ -36,8 +36,7 @@ function SmartHeal:CreateUI()
     insets   = {4,4,4,4},
   }
   f:SetBackdropColor(0,0,0,0.9)
-  f:SetWidth(300)
-  f:SetHeight(190)
+  f:SetWidth(300); f:SetHeight(190)
   f:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
   f:EnableMouse(true); f:SetMovable(true); f:RegisterForDrag("LeftButton")
   f:SetScript("OnDragStart", function() f:StartMoving() end)
@@ -58,12 +57,14 @@ function SmartHeal:CreateUI()
   local cb = CreateFrame("CheckButton", "SmartHealRenewToggle", f, "UICheckButtonTemplate")
   cb:SetPoint("TOPLEFT", f, "TOPLEFT", 70, -40)
   cb:SetChecked(self.useRenew)
-  cb:SetScript("OnClick", function(btn) SmartHeal.useRenew = btn:GetChecked() end)
+  cb:SetScript("OnClick", function(self)
+    SmartHeal.useRenew = self:GetChecked()
+  end)
   local cbLabel = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
   cbLabel:SetPoint("LEFT", cb, "RIGHT", 4, 0)
   cbLabel:SetText("Use Renew (Rank 1)")
 
-  -- Heal Spell label (no change)
+  -- Heal Spell label
   local spellLabel = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
   spellLabel:SetPoint("TOPLEFT", f, "TOPLEFT", 70, -80)
   spellLabel:SetText("Heal Spell:")
@@ -80,15 +81,15 @@ function SmartHeal:CreateUI()
   end)
   eb:SetScript("OnEscapePressed", function(box) box:ClearFocus() end)
 
-  -- **Shifted left by 50px** from 70 → 20
+  -- Slider label (shifted left by 50)
   local sliderLabel = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
   sliderLabel:SetPoint("TOPLEFT", eb, "BOTTOMLEFT", -50, -16)
   sliderLabel:SetText("Heal Below HP %:")
 
+  -- Slider
   local slider = CreateFrame("Slider", "SmartHealThresholdSlider", f, "OptionsSliderTemplate")
   slider:SetPoint("LEFT", sliderLabel, "RIGHT", 8, -2)
-  slider:SetMinMaxValues(0,1)
-  slider:SetValueStep(0.05)
+  slider:SetMinMaxValues(0,1); slider:SetValueStep(0.05)
   slider:SetValue(self.threshold)
   slider:SetScript("OnValueChanged", function(_, val)
     SmartHeal.threshold = val
