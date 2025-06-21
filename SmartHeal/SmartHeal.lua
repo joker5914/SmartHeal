@@ -73,9 +73,12 @@ function SmartHeal:CreateUI()
   eb:SetWidth(180); eb:SetHeight(20)
   eb:SetPoint("TOPLEFT", f, "TOPLEFT", 70, -100)
   eb:SetText(self.spell); eb:SetAutoFocus(false)
-  eb:SetScript("OnEnterPressed", function(box)
+  eb:SetScript("OnEnterPressed",function(box)
     local txt = trim(box:GetText())
-    if txt ~= "" then SmartHeal.spell = txt end
+    if txt~="" then
+      SmartHeal.spell       = txt      -- live value
+      SmartHealDB.spell     = txt      -- saved value
+    end
     box:ClearFocus()
   end)
   eb:SetScript("OnEscapePressed", function(box) box:ClearFocus() end)
@@ -91,7 +94,8 @@ function SmartHeal:CreateUI()
   slider:SetMinMaxValues(0,1); slider:SetValueStep(0.05)
   slider:SetValue(self.threshold)
   slider:SetScript("OnValueChanged",function(_, val)
-    SmartHealDB.threshold = val
+    SmartHeal.threshold     = val      -- live value
+    SmartHealDB.threshold   = val      -- saved
   end)
   getglobal(slider:GetName().."Low"):SetText("0%")
   getglobal(slider:GetName().."High"):SetText("100%")
