@@ -90,19 +90,22 @@ function SmartHeal:CreateUI()
 
   -- Slider
   local slider = CreateFrame("Slider","SmartHealThresholdSlider",f,"OptionsSliderTemplate")
-  -- give it some size so dragging actually works:
+  -- give it a real hit‐area:
   slider:SetWidth(150)
-  slider:SetHeight(16)
+  slider:SetHeight(20)
+  slider:EnableMouse(true)
   slider:SetPoint("LEFT", sliderLabel, "RIGHT", 8, -2)
-  slider:SetMinMaxValues(0,1); slider:SetValueStep(0.05)
-  slider:SetValue(self.threshold)
-  slider:SetScript("OnValueChanged",function(_, val)
+  slider:SetMinMaxValues(0,1)
+  slider:SetValueStep(0.05)
+  -- initialize at your live threshold
+  slider:SetValue(self.threshold or SmartHealDB.threshold or 0.85)
+  slider:SetScript("OnValueChanged", function(_, val)
     SmartHeal.threshold     = val      -- live value
     SmartHealDB.threshold   = val      -- saved
   end)
-  getglobal(slider:GetName().."Low"):SetText("0%")
-  getglobal(slider:GetName().."High"):SetText("100%")
-  getglobal(slider:GetName().."Text"):SetText("Threshold")
+  _G[slider:GetName().."Low"]:SetText("0%")
+  _G[slider:GetName().."High"]:SetText("100%")
+  _G[slider:GetName().."Text"]:SetText("Threshold")
 
   self.frame = f
 end
