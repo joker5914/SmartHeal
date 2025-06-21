@@ -90,6 +90,9 @@ function SmartHeal:CreateUI()
 
   -- Slider
   local slider = CreateFrame("Slider","SmartHealThresholdSlider",f,"OptionsSliderTemplate")
+  -- give it some size so dragging actually works:
+  slider:SetWidth(150)
+  slider:SetHeight(16)
   slider:SetPoint("LEFT", sliderLabel, "RIGHT", 8, -2)
   slider:SetMinMaxValues(0,1); slider:SetValueStep(0.05)
   slider:SetValue(self.threshold)
