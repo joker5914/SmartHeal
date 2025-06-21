@@ -112,13 +112,9 @@ function SmartHeal:HasRenew(unit)
 end
 
 function SmartHeal:HealLowest()
-  -- guarantee thresholds not nil
-  self.threshold     = self.threshold     or SmartHealDB.threshold
-  self.renewCooldown = self.renewCooldown or SmartHealDB.renewCooldown
-
-  -- gather units
+  -- gather units…
   local units = {"player"}
-  local raidCount  = (GetNumRaidMembers and GetNumRaidMembers()) or 0
+  local raidCount  = (GetNumRaidMembers  and GetNumRaidMembers())  or 0
   local partyCount = (GetNumPartyMembers and GetNumPartyMembers()) or 0
   if raidCount>0 then
     for i=1,raidCount do table.insert(units,"raid"..i) end
@@ -126,47 +122,46 @@ function SmartHeal:HealLowest()
     for i=1,partyCount do table.insert(units,"party"..i) end
   end
 
-  -- find lowest HP
-  local lowest,lowestHP = "player",UnitHealth("player")/UnitHealthMax("player")
+  -- find the lowest‐HP unit
+  local lowest, lowestHP = "player", UnitHealth("player")/UnitHealthMax("player")
   for _,u in ipairs(units) do
     if UnitExists(u) and UnitIsFriend("player",u) and not UnitIsDead(u) then
       local hp = UnitHealth(u)/UnitHealthMax(u)
-      if hp < lowestHP then
-        lowest,lowestHP = u,hp
-      end
+      if hp < lowestHP then lowest, lowestHP = u, hp end
     end
   end
 
-  -- compare safely
-  if lowestHP and self.threshold and lowestHP < self.threshold then
-    local old = UnitName("target")
-    TargetUnit(lowest)
-    local now = GetTime()
+  -- DEBUG: report what it found
+  DEFAULT_CHAT_FRAME:AddMessage(
+    ("SmartHeal Debug: lowest=%s (%d%%) threshold=%.0f%%"):format(
+      lowest, lowestHP*100, (self.threshold or 0)*100
+    )
+  )
 
-    -- Renew?
-    if self.useRenew
-       and not self:HasRenew(lowest)
-       and (not lastRenew[lowest] or now - lastRenew[lowest] >= self.renewCooldown)
-    then
-      if IsUsableSpell("Renew") then
-        CastSpellByName("Renew(Rank 1)")
-        lastRenew[lowest] = now
-      else
-        DEFAULT_CHAT_FRAME:AddMessage("SmartHeal: Cannot cast Renew")
-      end
-
-    -- Main spell
-    else
-      if IsUsableSpell(self.spell) then
-        CastSpellByName(self.spell)
-      else
-        DEFAULT_CHAT_FRAME:AddMessage("SmartHeal: Cannot cast "..self.spell)
-      end
-    end
-
-    if old then TargetByName(old) end
+  -- only heal if below threshold
+  if not lowestHP or not self.threshold then
+    DEFAULT_CHAT_FRAME:AddMessage("SmartHeal Debug: missing data, aborting.")
+    return
   end
+  if lowestHP >= self.threshold then
+    DEFAULT_CHAT_FRAME:AddMessage("SmartHeal Debug: above threshold, no cast.")
+    return
+  end
+
+  -- DEBUG: we’re about to cast
+  DEFAULT_CHAT_FRAME:AddMessage(("SmartHeal Debug: casting on %s"):format(lowest))
+
+  -- save target, cast, restore target…
+  local old = UnitName("target")
+  TargetUnit(lowest)
+  if self.useRenew and not self:HasRenew(lowest) then
+    CastSpellByName("Renew(Rank 1)")
+  else
+    CastSpellByName(self.spell)
+  end
+  if old then TargetByName(old) end
 end
+
 
 ----------------------------------------
 -- Slash Command
