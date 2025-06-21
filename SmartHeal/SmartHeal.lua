@@ -148,14 +148,18 @@ function SmartHeal:HealLowest()
        and not self:HasRenew(lowest)
        and (not lastRenew[lowest] or now - lastRenew[lowest] >= self.renewCooldown)
     then
-      if IsUsableSpell("Renew") then
+      -- safe Renew cast
+      local canCastRenew = (not IsUsableSpell) or IsUsableSpell("Renew")
+      if canCastRenew then
         CastSpellByName("Renew(Rank 1)")
         lastRenew[lowest] = now
       else
         DEFAULT_CHAT_FRAME:AddMessage("SmartHeal: Cannot cast Renew")
       end
     else
-      if IsUsableSpell(self.spell) then
+      -- safe main heal cast
+      local canCastHeal = (not IsUsableSpell) or IsUsableSpell(self.spell)
+      if canCastHeal then
         CastSpellByName(self.spell)
       else
         DEFAULT_CHAT_FRAME:AddMessage("SmartHeal: Cannot cast "..self.spell)
