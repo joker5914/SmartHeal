@@ -106,7 +106,7 @@ end
 function SmartHeal:HasRenew(unit)
   for i = 1, 16 do
     local buff = UnitBuff(unit, i)
-    if buff and strmatch(buff, "^Renew") then
+    if buff and string.find(buff, "^Renew") then
       return true
     end
   end
