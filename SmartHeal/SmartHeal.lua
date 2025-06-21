@@ -92,7 +92,7 @@ function SmartHeal:CreateUI()
   local slider = CreateFrame("Slider","SmartHealThresholdSlider",f,"OptionsSliderTemplate")
   slider:SetPoint("LEFT", sliderLabel, "RIGHT", 8, -2)
   slider:SetMinMaxValues(0,1); slider:SetValueStep(0.05)
-  slider:SetValue(self.threshold)
+  slider:SetValue(SmartHealDB.threshold)
   slider:SetScript("OnValueChanged",function(_, val)
     SmartHeal.threshold     = val      -- live value
     SmartHealDB.threshold   = val      -- saved
@@ -119,7 +119,7 @@ end
 
 function SmartHeal:HealLowest()
   -- 1) grab a guaranteed threshold number
-  local threshold = self.threshold or SmartHealDB.threshold or 0
+  local threshold = SmartHealDB.threshold or 0
 
   -- 2) build unit list
   local units = { "player" }
