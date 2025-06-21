@@ -63,7 +63,7 @@ function SmartHeal:CreateUI()
 
   -- HP threshold slider
   local slider = CreateFrame("Slider", "SmartHealThresholdSlider", f, "OptionsSliderTemplate")
-  slider:SetPoint("TOPLEFT", f, "TOPLEFT", 10, -70)
+  slider:SetPoint("TOPLEFT", f, "TOPLEFT", 10, -90)
   slider:SetMinMaxValues(0,1); slider:SetValueStep(0.05)
   slider:SetValue(self.threshold)
   slider:SetScript("OnValueChanged", function(_, val) SmartHeal.threshold = val end)
@@ -75,7 +75,7 @@ function SmartHeal:CreateUI()
   -- Spell input box
   local eb = CreateFrame("EditBox", "SmartHealSpellInput", f, "InputBoxTemplate")
   eb:SetWidth(180); eb:SetHeight(20)
-  eb:SetPoint("TOPLEFT", f, "TOPLEFT", 10, -100)
+  eb:SetPoint("TOPLEFT", f, "TOPLEFT", 10, -120)
   eb:SetText(self.spell); eb:SetAutoFocus(false)
   eb:SetScript("OnEnterPressed", function(box)
     local txt = trim(box:GetText())
