@@ -34,7 +34,7 @@ function SmartHeal:CreateUI()
     insets   = {4,4,4,4},
   }
   f:SetBackdropColor(0,0,0,0.9)
-  f:SetWidth(260); f:SetHeight(140)
+  f:SetWidth(300); f:SetHeight(190)
   f:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
   f:EnableMouse(true)
   f:SetMovable(true); f:RegisterForDrag("LeftButton")
