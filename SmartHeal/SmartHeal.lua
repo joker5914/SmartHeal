@@ -36,18 +36,19 @@ function SmartHeal:CreateUI()
   f:SetBackdropColor(0,0,0,0.9)
   f:SetWidth(300); f:SetHeight(190)
   f:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
-  f:EnableMouse(true); f:SetMovable(true); f:RegisterForDrag("LeftButton")
+  f:EnableMouse(true)
+  f:SetMovable(true); f:RegisterForDrag("LeftButton")
   f:SetScript("OnDragStart", function() f:StartMoving() end)
   f:SetScript("OnDragStop",  function() f:StopMovingOrSizing() end)
 
-  -- Main Title
+  -- Title
   local title = f:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
   title:SetPoint("TOP", f, "TOP", 0, -8)
   title:SetText("SmartHeal Settings")
 
   -- Close
   local close = CreateFrame("Button", nil, f, "UIPanelCloseButton")
-  close:SetSize(24,24)
+  close:SetWidth(24); close:SetHeight(24)
   close:SetPoint("TOPRIGHT", f, "TOPRIGHT", -4, -4)
   close:SetScript("OnClick", function() f:Hide() end)
 
@@ -66,15 +67,10 @@ function SmartHeal:CreateUI()
   slider:SetMinMaxValues(0,1); slider:SetValueStep(0.05)
   slider:SetValue(self.threshold)
   slider:SetScript("OnValueChanged", function(_, val) SmartHeal.threshold = val end)
+  -- replace _G[...] with getglobal():
   getglobal(slider:GetName().."Low"):SetText("0%")
   getglobal(slider:GetName().."High"):SetText("100%")
   getglobal(slider:GetName().."Text"):SetText("Heal Below HP %")
-
-  -- **New Label for Spell Input**
-  local spellLabel = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-  -- positioned 20px above your editbox
-  spellLabel:SetPoint("TOPLEFT", f, "TOPLEFT", 70, -130)
-  spellLabel:SetText("Heal Spell:")
 
   -- Spell input box
   local eb = CreateFrame("EditBox", "SmartHealSpellInput", f, "InputBoxTemplate")
