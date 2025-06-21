@@ -118,8 +118,8 @@ function SmartHeal:HasRenew(unit)
 end
 
 function SmartHeal:HealLowest()
-  -- 1) grab a guaranteed threshold number
-  local threshold = SmartHealDB.threshold or 0
+  -- 1) grab the live slider value (fall back to DB only if needed)
+  local threshold = self.threshold or SmartHealDB.threshold or 0
 
   -- 2) build unit list
   local units = { "player" }
