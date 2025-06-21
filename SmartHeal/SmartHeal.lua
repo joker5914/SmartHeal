@@ -2,13 +2,15 @@
 -- A dynamic, configurable healer helper for TurtleWoW Classic (1.12.1)
 
 SmartHeal = SmartHeal or {}
-SmartHealDB = SmartHealDB or {
-  spell         = "Flash Heal(Rank 2)",
-  useRenew      = true,
-  threshold     = 0.85,
-  renewCooldown = 3,
-}
 
+-- ensure SavedVariables always have defaults
+SmartHealDB = SmartHealDB or {}
+SmartHealDB.spell         = SmartHealDB.spell         or "Flash Heal(Rank 2)"
+SmartHealDB.useRenew      = (SmartHealDB.useRenew ~= false)  -- default true
+SmartHealDB.threshold     = SmartHealDB.threshold     or 0.85
+SmartHealDB.renewCooldown = SmartHealDB.renewCooldown or 3
+
+-- load into runtime
 SmartHeal.spell         = SmartHealDB.spell
 SmartHeal.useRenew      = SmartHealDB.useRenew
 SmartHeal.threshold     = SmartHealDB.threshold
@@ -20,7 +22,6 @@ local function trim(s) return string.gsub(s, "^%s*(.-)%s*$", "%1") end
 ----------------------------------------
 -- UI Creation
 ----------------------------------------
-
 function SmartHeal:CreateUI()
   if self.frame then
     self.frame:Show()
@@ -35,24 +36,19 @@ function SmartHeal:CreateUI()
     insets   = {4,4,4,4},
   }
   f:SetBackdropColor(0,0,0,0.9)
-
-  -- replace any SetSize with SetWidth/SetHeight
   f:SetWidth(300)
   f:SetHeight(190)
-
   f:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
-  f:EnableMouse(true)
-  f:SetMovable(true)
-  f:RegisterForDrag("LeftButton")
+  f:EnableMouse(true); f:SetMovable(true); f:RegisterForDrag("LeftButton")
   f:SetScript("OnDragStart", function() f:StartMoving() end)
   f:SetScript("OnDragStop",  function() f:StopMovingOrSizing() end)
 
-  -- Title
+  -- Main Title
   local title = f:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
   title:SetPoint("TOP", f, "TOP", 0, -8)
   title:SetText("SmartHeal Settings")
 
-  -- Close button
+  -- Close Button
   local close = CreateFrame("Button", nil, f, "UIPanelCloseButton")
   close:SetWidth(24); close:SetHeight(24)
   close:SetPoint("TOPRIGHT", f, "TOPRIGHT", -4, -4)
@@ -67,12 +63,12 @@ function SmartHeal:CreateUI()
   cbLabel:SetPoint("LEFT", cb, "RIGHT", 4, 0)
   cbLabel:SetText("Use Renew (Rank 1)")
 
-  -- Heal Spell label
+  -- Heal Spell label (no change)
   local spellLabel = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
   spellLabel:SetPoint("TOPLEFT", f, "TOPLEFT", 70, -80)
   spellLabel:SetText("Heal Spell:")
 
-  -- Spell input
+  -- Spell input box
   local eb = CreateFrame("EditBox", "SmartHealSpellInput", f, "InputBoxTemplate")
   eb:SetWidth(180); eb:SetHeight(20)
   eb:SetPoint("TOPLEFT", f, "TOPLEFT", 70, -100)
@@ -84,12 +80,11 @@ function SmartHeal:CreateUI()
   end)
   eb:SetScript("OnEscapePressed", function(box) box:ClearFocus() end)
 
-  -- Slider label
+  -- **Shifted left by 50px** from 70 → 20
   local sliderLabel = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-  sliderLabel:SetPoint("TOPLEFT", eb, "BOTTOMLEFT", 0, -16)
+  sliderLabel:SetPoint("TOPLEFT", eb, "BOTTOMLEFT", -50, -16)
   sliderLabel:SetText("Heal Below HP %:")
 
-  -- Slider
   local slider = CreateFrame("Slider", "SmartHealThresholdSlider", f, "OptionsSliderTemplate")
   slider:SetPoint("LEFT", sliderLabel, "RIGHT", 8, -2)
   slider:SetMinMaxValues(0,1)
@@ -106,7 +101,7 @@ function SmartHeal:CreateUI()
 end
 
 ----------------------------------------
--- Core Logic
+-- Core Logic (unchanged)
 ----------------------------------------
 function SmartHeal:HasRenew(unit)
   for i=1,16 do
@@ -123,7 +118,7 @@ function SmartHeal:HealLowest()
   if raidCount>0 then for i=1,raidCount do table.insert(units,"raid"..i) end
   elseif partyCount>0 then for i=1,partyCount do table.insert(units,"party"..i) end end
 
-  local lowest,lowestHP="player",UnitHealth("player")/UnitHealthMax("player")
+  local lowest, lowestHP = "player", UnitHealth("player")/UnitHealthMax("player")
   for _,u in ipairs(units) do
     if UnitExists(u) and UnitIsFriend("player",u) and not UnitIsDead(u) then
       local hp=UnitHealth(u)/UnitHealthMax(u)
@@ -131,11 +126,12 @@ function SmartHeal:HealLowest()
     end
   end
 
-  if lowestHP<self.threshold then
-    local old=UnitName("target")
+  if lowestHP < self.threshold then
+    local old = UnitName("target")
     TargetUnit(lowest)
-    local now=GetTime()
-    if self.useRenew and not self:HasRenew(lowest)
+    local now = GetTime()
+    if self.useRenew 
+       and not self:HasRenew(lowest)
        and (not lastRenew[lowest] or now-lastRenew[lowest]>=SmartHeal.renewCooldown)
     then
       if IsUsableSpell("Renew") then CastSpellByName("Renew(Rank 1)"); lastRenew[lowest]=now
@@ -153,12 +149,13 @@ end
 ----------------------------------------
 SLASH_SMARTHEAL1="/smartheal"
 SlashCmdList["SMARTHEAL"]=function(msg)
-  msg=trim(msg or"")
-  if msg=="ui" then SmartHeal:CreateUI()
-  elseif msg~="" then SmartHeal.spell=msg end
-  SmartHealDB.spell=SmartHeal.spell
-  SmartHealDB.useRenew=SmartHeal.useRenew
-  SmartHealDB.threshold=SmartHeal.threshold
-  SmartHealDB.renewCooldown=SmartHeal.renewCooldown
+  msg = trim(msg or "")
+  if msg == "ui" then SmartHeal:CreateUI()
+  elseif msg ~= "" then SmartHeal.spell = msg end
+  -- persist
+  SmartHealDB.spell         = SmartHeal.spell
+  SmartHealDB.useRenew      = SmartHeal.useRenew
+  SmartHealDB.threshold     = SmartHeal.threshold
+  SmartHealDB.renewCooldown = SmartHeal.renewCooldown
   SmartHeal:HealLowest()
 end
