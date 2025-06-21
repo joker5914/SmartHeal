@@ -114,13 +114,12 @@ function SmartHeal:HasRenew(unit)
 end
 
 function SmartHeal:HealLowest()
-  -- reload defaults if somehow nil
-  self.threshold     = self.threshold     or SmartHealDB.threshold
-  self.renewCooldown = self.renewCooldown or SmartHealDB.renewCooldown
+  -- ensure we have a valid number to compare
+  local threshold = self.threshold or SmartHealDB.threshold or 0
 
   -- build unit list
-  local units = {"player"}
-  local raidCount  = (GetNumRaidMembers and GetNumRaidMembers()) or 0
+  local units = { "player" }
+  local raidCount  = (GetNumRaidMembers  and GetNumRaidMembers())  or 0
   local partyCount = (GetNumPartyMembers and GetNumPartyMembers()) or 0
   if raidCount > 0 then
     for i = 1, raidCount do table.insert(units, "raid"..i) end
@@ -128,25 +127,25 @@ function SmartHeal:HealLowest()
     for i = 1, partyCount do table.insert(units, "party"..i) end
   end
 
-  -- find lowest HP
+  -- find the lowest HP unit
   local lowest, lowestHP = "player", UnitHealth("player")/UnitHealthMax("player")
-  for _, unit in ipairs(units) do
-    if UnitExists(unit) and UnitIsFriend("player", unit) and not UnitIsDead(unit) then
-      local hp = UnitHealth(unit)/UnitHealthMax(unit)
+  for _, u in ipairs(units) do
+    if UnitExists(u) and UnitIsFriend("player", u) and not UnitIsDead(u) then
+      local hp = UnitHealth(u)/UnitHealthMax(u)
       if hp < lowestHP then
-        lowest, lowestHP = unit, hp
+        lowest, lowestHP = u, hp
       end
     end
   end
 
-  -- only cast if below threshold
-  if lowestHP and lowestHP < self.threshold then
+  -- now compare against our guaranteed non‐nil threshold
+  if lowestHP < threshold then
     local old = UnitName("target")
     TargetUnit(lowest)
 
     local now = GetTime()
-    if self.useRenew 
-       and not self:HasRenew(lowest) 
+    if self.useRenew
+       and not self:HasRenew(lowest)
        and (not lastRenew[lowest] or now - lastRenew[lowest] >= self.renewCooldown)
     then
       if IsUsableSpell("Renew") then
@@ -180,10 +179,11 @@ SlashCmdList["SMARTHEAL"] = function(msg)
   end
 
   -- persist
-  SmartHealDB.spell         = SmartHeal.spell
-  SmartHealDB.useRenew      = SmartHeal.useRenew
-  SmartHealDB.threshold     = SmartHeal.threshold
-  SmartHealDB.renewCooldown = SmartHeal.renewCooldown
+  -- runtime settings (guarantee they're numbers/booleans)
+  SmartHeal.spell         = SmartHealDB.spell or "Flash Heal(Rank 2)"
+  SmartHeal.useRenew      = (SmartHealDB.useRenew ~= false)
+  SmartHeal.threshold     = SmartHealDB.threshold or 0.85
+  SmartHeal.renewCooldown = SmartHealDB.renewCooldown or 3
 
   SmartHeal:HealLowest()
 end
