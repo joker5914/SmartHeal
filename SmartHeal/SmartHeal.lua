@@ -91,7 +91,7 @@ function SmartHeal:CreateUI()
   slider:SetMinMaxValues(0,1); slider:SetValueStep(0.05)
   slider:SetValue(self.threshold)
   slider:SetScript("OnValueChanged",function(_, val)
-    SmartHeal.threshold = val
+    SmartHealDB.threshold = val
   end)
   getglobal(slider:GetName().."Low"):SetText("0%")
   getglobal(slider:GetName().."High"):SetText("100%")
@@ -176,18 +176,20 @@ end
 SLASH_SMARTHEAL1 = "/smartheal"
 SlashCmdList["SMARTHEAL"] = function(msg)
   msg = trim(msg or "")
+
   if msg == "ui" then
     SmartHeal:CreateUI()
-  elseif msg ~= "" then
-    SmartHeal.spell = msg
+    return
   end
 
-  -- persist
-  -- runtime settings (guarantee they're numbers/booleans)
-  SmartHeal.spell         = SmartHealDB.spell or "Flash Heal(Rank 2)"
-  SmartHeal.useRenew      = (SmartHealDB.useRenew ~= false)
-  SmartHeal.threshold     = SmartHealDB.threshold or 0.85
-  SmartHeal.renewCooldown = SmartHealDB.renewCooldown or 3
+  if msg ~= "" then
+    SmartHeal.spell = msg
+    SmartHealDB.spell = msg
+  end
+
+  -- persist the checkbox
+  SmartHealDB.useRenew = SmartHeal.useRenew
+  -- (renewCooldown is static unless you expose it in UI)
 
   SmartHeal:HealLowest()
 end
