@@ -142,10 +142,14 @@ function SmartHeal:HealLowest()
     end
   end
 
+
   -- 4) now debug with real numbers
   DEFAULT_CHAT_FRAME:AddMessage(
-    ("SmartHeal Debug → lowestHP: %.2f  threshold: %.2f")
-    :format(lowestHP or 0, threshold)
+    string.format(
+      "SmartHeal Debug → lowestHP: %.2f  threshold: %.2f",
+      lowestHP or 0,
+      threshold
+    )
   )
 
   -- 5) only cast if below threshold
