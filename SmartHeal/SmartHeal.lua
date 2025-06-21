@@ -118,10 +118,10 @@ function SmartHeal:HasRenew(unit)
 end
 
 function SmartHeal:HealLowest()
-  -- ensure we have a valid number to compare
+  -- 1) grab a guaranteed threshold number
   local threshold = self.threshold or SmartHealDB.threshold or 0
 
-  -- build unit list
+  -- 2) build unit list
   local units = { "player" }
   local raidCount  = (GetNumRaidMembers  and GetNumRaidMembers())  or 0
   local partyCount = (GetNumPartyMembers and GetNumPartyMembers()) or 0
@@ -131,7 +131,7 @@ function SmartHeal:HealLowest()
     for i = 1, partyCount do table.insert(units, "party"..i) end
   end
 
-  -- find the lowest HP unit
+  -- 3) find the lowest‐HP unit
   local lowest, lowestHP = "player", UnitHealth("player")/UnitHealthMax("player")
   for _, u in ipairs(units) do
     if UnitExists(u) and UnitIsFriend("player", u) and not UnitIsDead(u) then
@@ -142,7 +142,13 @@ function SmartHeal:HealLowest()
     end
   end
 
-  -- now compare against our guaranteed non‐nil threshold
+  -- 4) now debug with real numbers
+  DEFAULT_CHAT_FRAME:AddMessage(
+    ("SmartHeal Debug → lowestHP: %.2f  threshold: %.2f")
+    :format(lowestHP or 0, threshold)
+  )
+
+  -- 5) only cast if below threshold
   if lowestHP < threshold then
     local old = UnitName("target")
     TargetUnit(lowest)
@@ -152,7 +158,6 @@ function SmartHeal:HealLowest()
        and not self:HasRenew(lowest)
        and (not lastRenew[lowest] or now - lastRenew[lowest] >= self.renewCooldown)
     then
-      -- safe Renew cast
       local canCastRenew = (not IsUsableSpell) or IsUsableSpell("Renew")
       if canCastRenew then
         CastSpellByName("Renew(Rank 1)")
@@ -161,7 +166,6 @@ function SmartHeal:HealLowest()
         DEFAULT_CHAT_FRAME:AddMessage("SmartHeal: Cannot cast Renew")
       end
     else
-      -- safe main heal cast
       local canCastHeal = (not IsUsableSpell) or IsUsableSpell(self.spell)
       if canCastHeal then
         CastSpellByName(self.spell)
