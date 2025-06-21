@@ -24,73 +24,73 @@ local strmatch = string.match
 -- UI Creation
 ----------------------------------------
 function SmartHeal:CreateUI()
-  if self.frame then self.frame:Show(); return end
+  if self.frame then
+    self.frame:Show()
+    return
+  end
 
-  local f = CreateFrame("Frame","SmartHealFrame",UIParent)
+  local f = CreateFrame("Frame", "SmartHealFrame", UIParent)
   f:SetBackdrop{
     bgFile   = "Interface/Tooltips/UI-Tooltip-Background",
     edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
-    tile     = true, tileSize=16, edgeSize=16,
+    tile     = true, tileSize = 16, edgeSize = 16,
     insets   = {4,4,4,4},
   }
   f:SetBackdropColor(0,0,0,0.9)
   f:SetWidth(300); f:SetHeight(190)
-  f:SetPoint("CENTER",UIParent,"CENTER",0,0)
+  f:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
   f:EnableMouse(true); f:SetMovable(true); f:RegisterForDrag("LeftButton")
   f:SetScript("OnDragStart", function() f:StartMoving() end)
   f:SetScript("OnDragStop",  function() f:StopMovingOrSizing() end)
 
-  -- Title
+  -- Main Title
   local title = f:CreateFontString(nil,"OVERLAY","GameFontNormalLarge")
-  title:SetPoint("TOP",f,"TOP",0,-8)
+  title:SetPoint("TOP", f, "TOP", 0, -8)
   title:SetText("SmartHeal Settings")
 
-  -- Close
+  -- Close Button
   local close = CreateFrame("Button",nil,f,"UIPanelCloseButton")
   close:SetWidth(24); close:SetHeight(24)
-  close:SetPoint("TOPRIGHT",f,"TOPRIGHT",-4,-4)
-  close:SetScript("OnClick",function() f:Hide() end)
+  close:SetPoint("TOPRIGHT", f, "TOPRIGHT", -4, -4)
+  close:SetScript("OnClick", function() f:Hide() end)
 
   -- Renew checkbox
   local cb = CreateFrame("CheckButton","SmartHealRenewToggle",f,"UICheckButtonTemplate")
-  cb:SetPoint("TOPLEFT",f,"TOPLEFT",70,-40)
+  cb:SetPoint("TOPLEFT", f, "TOPLEFT", 70, -40)
   cb:SetChecked(self.useRenew)
-  cb:SetScript("OnClick",function() 
-    -- 'this' is the clicked checkbox in Classic
-    SmartHeal.useRenew = this:GetChecked() 
-  end)
+  cb:SetScript("OnClick",function() SmartHeal.useRenew = this:GetChecked() end)
   local cbLabel = f:CreateFontString(nil,"OVERLAY","GameFontNormal")
-  cbLabel:SetPoint("LEFT",cb,"RIGHT",4,0)
+  cbLabel:SetPoint("LEFT", cb, "RIGHT", 4, 0)
   cbLabel:SetText("Use Renew (Rank 1)")
 
   -- Heal Spell label
   local spellLabel = f:CreateFontString(nil,"OVERLAY","GameFontNormal")
-  spellLabel:SetPoint("TOPLEFT",f,"TOPLEFT",70,-80)
+  spellLabel:SetPoint("TOPLEFT", f, "TOPLEFT", 70, -80)
   spellLabel:SetText("Heal Spell:")
 
-  -- Spell input
+  -- Spell input box
   local eb = CreateFrame("EditBox","SmartHealSpellInput",f,"InputBoxTemplate")
   eb:SetWidth(180); eb:SetHeight(20)
-  eb:SetPoint("TOPLEFT",f,"TOPLEFT",70,-100)
+  eb:SetPoint("TOPLEFT", f, "TOPLEFT", 70, -100)
   eb:SetText(self.spell); eb:SetAutoFocus(false)
-  eb:SetScript("OnEnterPressed",function(box)
+  eb:SetScript("OnEnterPressed", function(box)
     local txt = trim(box:GetText())
-    if txt~="" then SmartHeal.spell = txt end
+    if txt ~= "" then SmartHeal.spell = txt end
     box:ClearFocus()
   end)
-  eb:SetScript("OnEscapePressed",function(box) box:ClearFocus() end)
+  eb:SetScript("OnEscapePressed", function(box) box:ClearFocus() end)
 
-  -- Slider label (shifted left)
+  -- Slider label (shifted left by 50)
   local sliderLabel = f:CreateFontString(nil,"OVERLAY","GameFontNormal")
-  sliderLabel:SetPoint("TOPLEFT",eb,"BOTTOMLEFT", -50, -16)
+  sliderLabel:SetPoint("TOPLEFT", eb, "BOTTOMLEFT", -50, -16)
   sliderLabel:SetText("Heal Below HP %:")
 
   -- Slider
   local slider = CreateFrame("Slider","SmartHealThresholdSlider",f,"OptionsSliderTemplate")
-  slider:SetPoint("LEFT",sliderLabel,"RIGHT",8,-2)
+  slider:SetPoint("LEFT", sliderLabel, "RIGHT", 8, -2)
   slider:SetMinMaxValues(0,1); slider:SetValueStep(0.05)
   slider:SetValue(self.threshold)
-  slider:SetScript("OnValueChanged",function(_,val)
+  slider:SetScript("OnValueChanged",function(_, val)
     SmartHeal.threshold = val
   end)
   getglobal(slider:GetName().."Low"):SetText("0%")
@@ -101,67 +101,71 @@ function SmartHeal:CreateUI()
 end
 
 ----------------------------------------
--- Core Logic
+-- Core Logic (clean, no debug)
 ----------------------------------------
 function SmartHeal:HasRenew(unit)
-  for i=1,16 do
-    local buffName = UnitBuff(unit,i)
-    if buffName and strmatch(buffName,"^Renew") then return true end
+  for i = 1, 16 do
+    local buff = UnitBuff(unit, i)
+    if buff and strmatch(buff, "^Renew") then
+      return true
+    end
   end
   return false
 end
 
 function SmartHeal:HealLowest()
-  -- gather units…
+  -- reload defaults if somehow nil
+  self.threshold     = self.threshold     or SmartHealDB.threshold
+  self.renewCooldown = self.renewCooldown or SmartHealDB.renewCooldown
+
+  -- build unit list
   local units = {"player"}
-  local raidCount  = (GetNumRaidMembers  and GetNumRaidMembers())  or 0
+  local raidCount  = (GetNumRaidMembers and GetNumRaidMembers()) or 0
   local partyCount = (GetNumPartyMembers and GetNumPartyMembers()) or 0
-  if raidCount>0 then
-    for i=1,raidCount do table.insert(units,"raid"..i) end
-  elseif partyCount>0 then
-    for i=1,partyCount do table.insert(units,"party"..i) end
+  if raidCount > 0 then
+    for i = 1, raidCount do table.insert(units, "raid"..i) end
+  elseif partyCount > 0 then
+    for i = 1, partyCount do table.insert(units, "party"..i) end
   end
 
-  -- find the lowest‐HP unit
+  -- find lowest HP
   local lowest, lowestHP = "player", UnitHealth("player")/UnitHealthMax("player")
-  for _,u in ipairs(units) do
-    if UnitExists(u) and UnitIsFriend("player",u) and not UnitIsDead(u) then
-      local hp = UnitHealth(u)/UnitHealthMax(u)
-      if hp < lowestHP then lowest, lowestHP = u, hp end
+  for _, unit in ipairs(units) do
+    if UnitExists(unit) and UnitIsFriend("player", unit) and not UnitIsDead(unit) then
+      local hp = UnitHealth(unit)/UnitHealthMax(unit)
+      if hp < lowestHP then
+        lowest, lowestHP = unit, hp
+      end
     end
   end
 
-  -- DEBUG: report what it found
-  DEFAULT_CHAT_FRAME:AddMessage(
-    ("SmartHeal Debug: lowest=%s (%d%%) threshold=%.0f%%"):format(
-      lowest, lowestHP*100, (self.threshold or 0)*100
-    )
-  )
+  -- only cast if below threshold
+  if lowestHP and lowestHP < self.threshold then
+    local old = UnitName("target")
+    TargetUnit(lowest)
 
-  -- only heal if below threshold
-  if not lowestHP or not self.threshold then
-    DEFAULT_CHAT_FRAME:AddMessage("SmartHeal Debug: missing data, aborting.")
-    return
-  end
-  if lowestHP >= self.threshold then
-    DEFAULT_CHAT_FRAME:AddMessage("SmartHeal Debug: above threshold, no cast.")
-    return
-  end
+    local now = GetTime()
+    if self.useRenew 
+       and not self:HasRenew(lowest) 
+       and (not lastRenew[lowest] or now - lastRenew[lowest] >= self.renewCooldown)
+    then
+      if IsUsableSpell("Renew") then
+        CastSpellByName("Renew(Rank 1)")
+        lastRenew[lowest] = now
+      else
+        DEFAULT_CHAT_FRAME:AddMessage("SmartHeal: Cannot cast Renew")
+      end
+    else
+      if IsUsableSpell(self.spell) then
+        CastSpellByName(self.spell)
+      else
+        DEFAULT_CHAT_FRAME:AddMessage("SmartHeal: Cannot cast "..self.spell)
+      end
+    end
 
-  -- DEBUG: we’re about to cast
-  DEFAULT_CHAT_FRAME:AddMessage(("SmartHeal Debug: casting on %s"):format(lowest))
-
-  -- save target, cast, restore target…
-  local old = UnitName("target")
-  TargetUnit(lowest)
-  if self.useRenew and not self:HasRenew(lowest) then
-    CastSpellByName("Renew(Rank 1)")
-  else
-    CastSpellByName(self.spell)
+    if old then TargetByName(old) end
   end
-  if old then TargetByName(old) end
 end
-
 
 ----------------------------------------
 -- Slash Command
