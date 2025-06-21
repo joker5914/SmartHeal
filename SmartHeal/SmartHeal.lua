@@ -20,6 +20,9 @@ local function trim(s) return string.gsub(s, "^%s*(.-)%s*$", "%1") end
 ----------------------------------------
 -- UI Creation
 ----------------------------------------
+----------------------------------------
+-- UI Creation
+----------------------------------------
 function SmartHeal:CreateUI()
   if self.frame then
     self.frame:Show()
@@ -36,19 +39,18 @@ function SmartHeal:CreateUI()
   f:SetBackdropColor(0,0,0,0.9)
   f:SetWidth(300); f:SetHeight(190)
   f:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
-  f:EnableMouse(true)
-  f:SetMovable(true); f:RegisterForDrag("LeftButton")
+  f:EnableMouse(true); f:SetMovable(true); f:RegisterForDrag("LeftButton")
   f:SetScript("OnDragStart", function() f:StartMoving() end)
   f:SetScript("OnDragStop",  function() f:StopMovingOrSizing() end)
 
-  -- Title
+  -- Main Title
   local title = f:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
   title:SetPoint("TOP", f, "TOP", 0, -8)
   title:SetText("SmartHeal Settings")
 
-  -- Close
+  -- Close Button
   local close = CreateFrame("Button", nil, f, "UIPanelCloseButton")
-  close:SetWidth(24); close:SetHeight(24)
+  close:SetSize(24,24)
   close:SetPoint("TOPRIGHT", f, "TOPRIGHT", -4, -4)
   close:SetScript("OnClick", function() f:Hide() end)
 
@@ -67,10 +69,14 @@ function SmartHeal:CreateUI()
   slider:SetMinMaxValues(0,1); slider:SetValueStep(0.05)
   slider:SetValue(self.threshold)
   slider:SetScript("OnValueChanged", function(_, val) SmartHeal.threshold = val end)
-  -- replace _G[...] with getglobal():
   getglobal(slider:GetName().."Low"):SetText("0%")
   getglobal(slider:GetName().."High"):SetText("100%")
   getglobal(slider:GetName().."Text"):SetText("Heal Below HP %")
+
+  -- **Heal Spell label** (NEW)
+  local spellLabel = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+  spellLabel:SetPoint("TOPLEFT", f, "TOPLEFT", 70, -130)
+  spellLabel:SetText("Heal Spell:")
 
   -- Spell input box
   local eb = CreateFrame("EditBox", "SmartHealSpellInput", f, "InputBoxTemplate")
@@ -79,7 +85,7 @@ function SmartHeal:CreateUI()
   eb:SetText(self.spell); eb:SetAutoFocus(false)
   eb:SetScript("OnEnterPressed", function(box)
     local txt = trim(box:GetText())
-    if txt~="" then SmartHeal.spell = txt end
+    if txt ~= "" then SmartHeal.spell = txt end
     box:ClearFocus()
   end)
   eb:SetScript("OnEscapePressed", function(box) box:ClearFocus() end)
