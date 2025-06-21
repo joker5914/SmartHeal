@@ -75,7 +75,7 @@ function SmartHeal:CreateUI()
   -- Spell input box
   local eb = CreateFrame("EditBox", "SmartHealSpellInput", f, "InputBoxTemplate")
   eb:SetWidth(180); eb:SetHeight(20)
-  eb:SetPoint("TOPLEFT", f, "TOPLEFT", 120, -40)
+  eb:SetPoint("TOPLEFT", f, "TOPLEFT", 100, -40)
   eb:SetText(self.spell); eb:SetAutoFocus(false)
   eb:SetScript("OnEnterPressed", function(box)
     local txt = trim(box:GetText())
