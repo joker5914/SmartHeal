@@ -1,3 +1,25 @@
+-- SmartHeal Addon
+-- A dynamic, configurable healer helper for TurtleWoW Classic (1.12.1)
+
+SmartHeal = SmartHeal or {}
+SmartHealDB = SmartHealDB or {
+  spell         = "Flash Heal(Rank 2)",
+  useRenew      = true,
+  threshold     = 0.85,
+  renewCooldown = 3,
+}
+
+SmartHeal.spell         = SmartHealDB.spell
+SmartHeal.useRenew      = SmartHealDB.useRenew
+SmartHeal.threshold     = SmartHealDB.threshold
+SmartHeal.renewCooldown = SmartHealDB.renewCooldown
+
+local lastRenew = {}
+local function trim(s) return string.gsub(s, "^%s*(.-)%s*$", "%1") end
+
+----------------------------------------
+-- UI Creation
+----------------------------------------
 function SmartHeal:CreateUI()
   if self.frame then
     self.frame:Show()
@@ -67,4 +89,62 @@ function SmartHeal:CreateUI()
   eb:SetScript("OnEscapePressed", function(box) box:ClearFocus() end)
 
   self.frame = f
+end
+
+----------------------------------------
+-- Core Logic
+----------------------------------------
+function SmartHeal:HasRenew(unit)
+  for i=1,16 do
+    local buffName = UnitBuff(unit,i)
+    if buffName and string.match(buffName,"^Renew") then return true end
+  end
+  return false
+end
+
+function SmartHeal:HealLowest()
+  local units = {"player"}
+  local raidCount  = (GetNumRaidMembers  and GetNumRaidMembers())  or 0
+  local partyCount = (GetNumPartyMembers and GetNumPartyMembers()) or 0
+  if raidCount>0 then for i=1,raidCount do table.insert(units,"raid"..i) end
+  elseif partyCount>0 then for i=1,partyCount do table.insert(units,"party"..i) end end
+
+  local lowest,lowestHP="player",UnitHealth("player")/UnitHealthMax("player")
+  for _,u in ipairs(units) do
+    if UnitExists(u) and UnitIsFriend("player",u) and not UnitIsDead(u) then
+      local hp=UnitHealth(u)/UnitHealthMax(u)
+      if hp<lowestHP then lowest,lowestHP=u,hp end
+    end
+  end
+
+  if lowestHP<self.threshold then
+    local old=UnitName("target")
+    TargetUnit(lowest)
+    local now=GetTime()
+    if self.useRenew and not self:HasRenew(lowest)
+       and (not lastRenew[lowest] or now-lastRenew[lowest]>=SmartHeal.renewCooldown)
+    then
+      if IsUsableSpell("Renew") then CastSpellByName("Renew(Rank 1)"); lastRenew[lowest]=now
+      else DEFAULT_CHAT_FRAME:AddMessage("SmartHeal: Cannot cast Renew") end
+    else
+      if IsUsableSpell(self.spell) then CastSpellByName(self.spell)
+      else DEFAULT_CHAT_FRAME:AddMessage("SmartHeal: Cannot cast "..self.spell) end
+    end
+    if old then TargetByName(old) end
+  end
+end
+
+----------------------------------------
+-- Slash Command
+----------------------------------------
+SLASH_SMARTHEAL1="/smartheal"
+SlashCmdList["SMARTHEAL"]=function(msg)
+  msg=trim(msg or"")
+  if msg=="ui" then SmartHeal:CreateUI()
+  elseif msg~="" then SmartHeal.spell=msg end
+  SmartHealDB.spell=SmartHeal.spell
+  SmartHealDB.useRenew=SmartHeal.useRenew
+  SmartHealDB.threshold=SmartHeal.threshold
+  SmartHealDB.renewCooldown=SmartHeal.renewCooldown
+  SmartHeal:HealLowest()
 end
