@@ -18,6 +18,7 @@ SmartHeal.renewCooldown = SmartHealDB.renewCooldown
 
 local lastRenew = {}
 local function trim(s) return string.gsub(s, "^%s*(.-)%s*$", "%1") end
+local strmatch = string.match
 
 ----------------------------------------
 -- UI Creation
@@ -107,7 +108,7 @@ end
 function SmartHeal:HasRenew(unit)
   for i=1,16 do
     local buffName = UnitBuff(unit,i)
-    if buffName and string.match(buffName,"^Renew") then return true end
+    if buffName and strmatch(buffName,"^Renew") then return true end
   end
   return false
 end
