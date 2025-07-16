@@ -6,7 +6,8 @@ local frame = CreateFrame("Frame")
 
 local lastRenew = {}
 local function trim(s) return string.gsub(s, "^%s*(.-)%s*$", "%1") end
-local strmatch = string.match
+-- not used but kept for potential future patterns
+-- local strmatch = string.match
 
 function SmartHeal:CreateUI()
   if self.frame then
@@ -32,46 +33,7 @@ function SmartHeal:CreateUI()
   title:SetPoint("TOP", f, "TOP", 0, -8)
   title:SetText("SmartHeal Settings")
 
-  local close = CreateFrame("Button", nil, f, "UIPanelCloseButton")
-  close:SetWidth(24); close:SetHeight(24)
-  close:SetPoint("TOPRIGHT", f, "TOPRIGHT", -4, -4)
-  close:SetScript("OnClick", function() f:Hide() end)
-
-  local cb = CreateFrame("CheckButton", "SmartHealRenewToggle", f, "UICheckButtonTemplate")
-  cb:SetPoint("TOPLEFT", f, "TOPLEFT", 70, -40)
-  cb:SetChecked(self.useRenew)
-  cb:SetScript("OnClick", function(self)
-    SmartHeal.useRenew = self:GetChecked()
-    SmartHealDB.useRenew = SmartHeal.useRenew
-  end)
-  local cbLabel = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-  cbLabel:SetPoint("LEFT", cb, "RIGHT", 4, 0)
-  cbLabel:SetText("Use Renew (Rank 1)")
-
-  local spellLabel = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-  spellLabel:SetPoint("TOPLEFT", f, "TOPLEFT", 70, -80)
-  spellLabel:SetText("Heal Spell:")
-
-  local eb = CreateFrame("EditBox", "SmartHealSpellInput", f, "InputBoxTemplate")
-  eb:SetWidth(180); eb:SetHeight(20)
-  eb:SetPoint("TOPLEFT", f, "TOPLEFT", 70, -100)
-  eb:SetText(self.spell); eb:SetAutoFocus(false)
-  eb:SetScript("OnEnterPressed", function(self)
-    local txt = trim(self:GetText())
-    if txt ~= "" then
-      SmartHeal.spell     = txt
-      SmartHealDB.spell   = txt
-    end
-    self:ClearFocus()
-  end)
-  eb:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
-
-  local sliderLabel = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-  sliderLabel:SetPoint("TOPLEFT", eb, "BOTTOMLEFT", -50, -16)
-  sliderLabel:SetText("Heal Below HP %:")
-
-  local slider = CreateFrame("Slider", "SmartHealThresholdSlider", f, "OptionsSliderTemplate")
-  slider:SetWidth(150); slider:SetHeight(20)
+@@ -75,80 +76,85 @@ function SmartHeal:CreateUI()
   slider:EnableMouse(true)
   slider:SetPoint("LEFT", sliderLabel, "RIGHT", 8, -2)
   slider:SetMinMaxValues(0, 1)
@@ -100,7 +62,11 @@ end
 function SmartHeal:HasRenew(unit)
   for i = 1, 16 do
     local buff = UnitBuff(unit, i)
-    if buff and string.find(buff, "^Renew") then
+    if not buff then break end
+    -- UnitBuff returns the texture in vanilla (e.g. "Interface\\Icons\\Spell_Holy_Renew")
+    -- and the spell name in later clients. Checking for "Renew" in the string
+    -- works for both formats.
+    if type(buff) == "string" and string.find(buff, "Renew") then
       return true
     end
   end
@@ -120,7 +86,8 @@ function SmartHeal:HealLowest()
 
   local lowest, lowestHP = "player", UnitHealth("player")/UnitHealthMax("player")
   for _, u in ipairs(units) do
-    if UnitExists(u) and UnitIsFriend("player", u) and not UnitIsDead(u) then
+    if UnitExists(u) and UnitIsFriend("player", u) and not UnitIsDead(u)
+       and (not UnitIsConnected or UnitIsConnected(u)) then
       local hp = UnitHealth(u)/UnitHealthMax(u)
       if hp < lowestHP then
         lowest, lowestHP = u, hp
@@ -151,10 +118,6 @@ function SmartHeal:HealLowest()
         DEFAULT_CHAT_FRAME:AddMessage("SmartHeal: Cannot cast "..self.spell)
       end
     end
-
-    if old then TargetByName(old) end
-  end
-end
 
 frame:RegisterEvent("ADDON_LOADED")
 frame:SetScript("OnEvent", function(_, event, arg)
