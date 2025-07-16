@@ -1,19 +1,29 @@
 -- SmartHeal Addon
 -- A dynamic, configurable healer helper for TurtleWoW Classic (1.12.1)
 
--- namespace + saved-vars defaults
 SmartHeal = SmartHeal or {}
-SmartHealDB = SmartHealDB or {}
-SmartHealDB.spell         = SmartHealDB.spell         or "Flash Heal(Rank 2)"
-SmartHealDB.useRenew      = (SmartHealDB.useRenew ~= false)  -- default true
-SmartHealDB.threshold     = SmartHealDB.threshold     or 0.85
-SmartHealDB.renewCooldown = SmartHealDB.renewCooldown or 3
+local frame = CreateFrame("Frame")
 
--- runtime settings
-SmartHeal.spell         = SmartHealDB.spell
-SmartHeal.useRenew      = SmartHealDB.useRenew
-SmartHeal.threshold     = SmartHealDB.threshold
-SmartHeal.renewCooldown = SmartHealDB.renewCooldown
+frame:RegisterEvent("ADDON_LOADED")
+frame:SetScript("OnEvent", function(_, event, arg)
+  if event == "ADDON_LOADED" and arg == "SmartHeal" then
+
+    -- Initialize SavedVariables
+    SmartHealDB = SmartHealDB or {}
+    SmartHealDB.spell         = SmartHealDB.spell         or "Flash Heal(Rank 2)"
+    SmartHealDB.useRenew      = (SmartHealDB.useRenew ~= false)
+    SmartHealDB.threshold     = SmartHealDB.threshold     or 0.85
+    SmartHealDB.renewCooldown = SmartHealDB.renewCooldown or 3
+
+    -- Assign to runtime
+    SmartHeal.spell         = SmartHealDB.spell
+    SmartHeal.useRenew      = SmartHealDB.useRenew
+    SmartHeal.threshold     = SmartHealDB.threshold
+    SmartHeal.renewCooldown = SmartHealDB.renewCooldown
+
+    DEFAULT_CHAT_FRAME:AddMessage("SmartHeal loaded.")
+  end
+end)
 
 -- locals
 local lastRenew = {}
