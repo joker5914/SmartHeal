@@ -73,15 +73,18 @@ function SmartHeal:CreateUI()
   eb:SetWidth(180); eb:SetHeight(20)
   eb:SetPoint("TOPLEFT", f, "TOPLEFT", 70, -100)
   eb:SetText(self.spell); eb:SetAutoFocus(false)
-  eb:SetScript("OnEnterPressed",function(box)
-    local txt = trim(box:GetText())
-    if txt~="" then
-      SmartHeal.spell       = txt      -- live value
-      SmartHealDB.spell     = txt      -- saved value
+  eb:SetScript("OnEnterPressed", function()
+    local txt = trim(this:GetText())
+    if txt ~= "" then
+      SmartHeal.spell     = txt
+      SmartHealDB.spell   = txt
     end
-    box:ClearFocus()
+    this:ClearFocus()
   end)
-  eb:SetScript("OnEscapePressed", function(box) box:ClearFocus() end)
+  
+  eb:SetScript("OnEscapePressed", function()
+    this:ClearFocus()
+  end)
 
   -- Slider label (shifted left by 50)
   local sliderLabel = f:CreateFontString(nil,"OVERLAY","GameFontNormal")
@@ -103,9 +106,9 @@ function SmartHeal:CreateUI()
     SmartHeal.threshold     = val      -- live value
     SmartHealDB.threshold   = val      -- saved
   end)
-  _G[slider:GetName().."Low"]:SetText("0%")
-  _G[slider:GetName().."High"]:SetText("100%")
-  _G[slider:GetName().."Text"]:SetText("Threshold")
+  getglobal(slider:GetName().."Low"):SetText("0%")
+  getglobal(slider:GetName().."High"):SetText("100%")
+  getglobal(slider:GetName().."Text"):SetText("Threshold")
 
   self.frame = f
 end
