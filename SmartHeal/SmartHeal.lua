@@ -100,11 +100,11 @@ function SmartHeal:CreateUI()
   slider:SetPoint("LEFT", sliderLabel, "RIGHT", 8, -2)
   slider:SetMinMaxValues(0,1)
   slider:SetValueStep(0.05)
-  -- initialize at your live threshold
-  slider:SetValue(self.threshold or SmartHealDB.threshold or 0.85)
-  slider:SetScript("OnValueChanged", function(_, val)
-    SmartHeal.threshold     = val      -- live value
-    SmartHealDB.threshold   = val      -- saved
+  -- Save slider value when the frame is hidden
+  f:SetScript("OnHide", function()
+    local sliderVal = SmartHealThresholdSlider:GetValue()
+    SmartHeal.threshold     = sliderVal
+    SmartHealDB.threshold   = sliderVal
   end)
   getglobal(slider:GetName().."Low"):SetText("0%")
   getglobal(slider:GetName().."High"):SetText("100%")
