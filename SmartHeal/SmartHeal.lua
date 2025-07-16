@@ -99,6 +99,7 @@ function SmartHeal:CreateUI()
   slider:SetValueStep(0.05)
   slider:SetValue(self.threshold or SmartHealDB.threshold or 0.85)
   slider:SetScript("OnValueChanged", function(_, val)
+    val = val or slider:GetValue()  -- fallback if val is nil
     SmartHeal.threshold   = val
     SmartHealDB.threshold = val
     getglobal(slider:GetName().."Text"):SetText("Threshold ("..math.floor(val * 100).."%)")
