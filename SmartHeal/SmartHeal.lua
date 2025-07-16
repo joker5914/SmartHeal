@@ -49,27 +49,29 @@ function SmartHeal:CreateUI()
   title:SetText("SmartHeal Settings")
 
   -- Close Button
-  local close = CreateFrame("Button",nil,f,"UIPanelCloseButton")
+  local close = CreateFrame("Button", nil, f, "UIPanelCloseButton")
   close:SetWidth(24); close:SetHeight(24)
   close:SetPoint("TOPRIGHT", f, "TOPRIGHT", -4, -4)
   close:SetScript("OnClick", function() f:Hide() end)
 
   -- Renew checkbox
-  local cb = CreateFrame("CheckButton","SmartHealRenewToggle",f,"UICheckButtonTemplate")
+  local cb = CreateFrame("CheckButton", "SmartHealRenewToggle", f, "UICheckButtonTemplate")
   cb:SetPoint("TOPLEFT", f, "TOPLEFT", 70, -40)
   cb:SetChecked(self.useRenew)
-  cb:SetScript("OnClick",function() SmartHeal.useRenew = this:GetChecked() end)
-  local cbLabel = f:CreateFontString(nil,"OVERLAY","GameFontNormal")
+  cb:SetScript("OnClick", function()
+    SmartHeal.useRenew = this:GetChecked()
+  end)
+  local cbLabel = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
   cbLabel:SetPoint("LEFT", cb, "RIGHT", 4, 0)
   cbLabel:SetText("Use Renew (Rank 1)")
 
   -- Heal Spell label
-  local spellLabel = f:CreateFontString(nil,"OVERLAY","GameFontNormal")
+  local spellLabel = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
   spellLabel:SetPoint("TOPLEFT", f, "TOPLEFT", 70, -80)
   spellLabel:SetText("Heal Spell:")
 
   -- Spell input box
-  local eb = CreateFrame("EditBox","SmartHealSpellInput",f,"InputBoxTemplate")
+  local eb = CreateFrame("EditBox", "SmartHealSpellInput", f, "InputBoxTemplate")
   eb:SetWidth(180); eb:SetHeight(20)
   eb:SetPoint("TOPLEFT", f, "TOPLEFT", 70, -100)
   eb:SetText(self.spell); eb:SetAutoFocus(false)
@@ -81,34 +83,37 @@ function SmartHeal:CreateUI()
     end
     this:ClearFocus()
   end)
-  
-  eb:SetScript("OnEscapePressed", function()
-    this:ClearFocus()
-  end)
+  eb:SetScript("OnEscapePressed", function() this:ClearFocus() end)
 
-  -- Slider label (shifted left by 50)
-  local sliderLabel = f:CreateFontString(nil,"OVERLAY","GameFontNormal")
+  -- Slider label
+  local sliderLabel = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
   sliderLabel:SetPoint("TOPLEFT", eb, "BOTTOMLEFT", -50, -16)
   sliderLabel:SetText("Heal Below HP %:")
 
   -- Slider
-  local slider = CreateFrame("Slider","SmartHealThresholdSlider",f,"OptionsSliderTemplate")
-  -- give it a real hit‐area:
-  slider:SetWidth(150)
-  slider:SetHeight(20)
+  local slider = CreateFrame("Slider", "SmartHealThresholdSlider", f, "OptionsSliderTemplate")
+  slider:SetWidth(150); slider:SetHeight(20)
   slider:EnableMouse(true)
   slider:SetPoint("LEFT", sliderLabel, "RIGHT", 8, -2)
-  slider:SetMinMaxValues(0,1)
+  slider:SetMinMaxValues(0, 1)
   slider:SetValueStep(0.05)
-  -- Save slider value when the frame is hidden
+  slider:SetValue(self.threshold or SmartHealDB.threshold or 0.85)
+  slider:SetScript("OnValueChanged", function(_, val)
+    SmartHeal.threshold   = val
+    SmartHealDB.threshold = val
+    getglobal(slider:GetName().."Text"):SetText("Threshold ("..math.floor(val * 100).."%)")
+  end)
+
+  getglobal(slider:GetName().."Low"):SetText("0%")
+  getglobal(slider:GetName().."High"):SetText("100%")
+  getglobal(slider:GetName().."Text"):SetText("Threshold ("..math.floor(slider:GetValue() * 100).."%)")
+
+  -- Save the threshold when closing the window
   f:SetScript("OnHide", function()
     local sliderVal = SmartHealThresholdSlider:GetValue()
     SmartHeal.threshold     = sliderVal
     SmartHealDB.threshold   = sliderVal
   end)
-  getglobal(slider:GetName().."Low"):SetText("0%")
-  getglobal(slider:GetName().."High"):SetText("100%")
-  getglobal(slider:GetName().."Text"):SetText("Threshold")
 
   self.frame = f
 end
