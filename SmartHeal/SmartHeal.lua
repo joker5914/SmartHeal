@@ -64,6 +64,33 @@ function SmartHeal:GetHighestRankedSpell(spellBaseName)
 end
 
 ----------------------------------------
+-- Slash Command
+----------------------------------------
+SLASH_SMARTHEAL1 = "/smartheal"
+SlashCmdList["SMARTHEAL"] = function(msg)
+  msg = trim(msg or "")
+
+  if msg == "ui" then
+    SmartHeal:CreateUI()
+    return
+  end
+
+  if msg ~= "" then
+    local fullSpell = SmartHeal:GetHighestRankedSpell(msg)
+    if fullSpell then
+      SmartHeal.spell = fullSpell
+      SmartHealDB.spell = fullSpell
+      DEFAULT_CHAT_FRAME:AddMessage("SmartHeal: Using " .. fullSpell)
+    else
+      DEFAULT_CHAT_FRAME:AddMessage("SmartHeal: Spell not found in spellbook.")
+    end
+  end
+
+  SmartHealDB.useRenew = SmartHeal.useRenew
+  SmartHeal:HealLowest()
+end
+
+----------------------------------------
 -- UI Creation
 ----------------------------------------
 function SmartHeal:CreateUI()
@@ -152,31 +179,4 @@ function SmartHeal:CreateUI()
   end)
 
   self.frame = f
-end
-
-----------------------------------------
--- Slash Command
-----------------------------------------
-SLASH_SMARTHEAL1 = "/smartheal"
-SlashCmdList["SMARTHEAL"] = function(msg)
-  msg = trim(msg or "")
-
-  if msg == "ui" then
-    SmartHeal:CreateUI()
-    return
-  end
-
-  if msg ~= "" then
-    local fullSpell = SmartHeal:GetHighestRankedSpell(msg)
-    if fullSpell then
-      SmartHeal.spell = fullSpell
-      SmartHealDB.spell = fullSpell
-      DEFAULT_CHAT_FRAME:AddMessage("SmartHeal: Using " .. fullSpell)
-    else
-      DEFAULT_CHAT_FRAME:AddMessage("SmartHeal: Spell not found in spellbook.")
-    end
-  end
-
-  SmartHealDB.useRenew = SmartHeal.useRenew
-  SmartHeal:HealLowest()
 end
