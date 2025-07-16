@@ -2,4 +2,5 @@
 ## Title: |cff00ced1[CS]|r |cffffffffSmartHeal|r
 ## Notes: Lightweight healing addon that heals the lowest HP players
 ## Version: GIT
+## SavedVariables: SmartHealDB
 SmartHeal.lua
